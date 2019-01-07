@@ -5,5 +5,19 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
+
+    <!--activity main drawer-->
+    <string name="parkside_dining_hall">Parkside Restaurant &amp; Grill</string>
+    <string name="evk_dining_hall">Everybody\'s Kitchen</string>
+    <string name="village_dining_hall">USC Village Dining Hall</string>
     <string name="action_settings">Settings</string>
+
+    <!--toolbar menu-->
+    <string name="action_refresh">Refresh</string>
+
+    <!--tab bar-->
+    <string name="tab_breakfast">BREAKFAST</string>
+    <string name="tab_lunch">LUNCH</string>
+    <string name="tab_dinner">DINNER</string>
+    <string name="tab_brunch">BRUNCH</string>
 </resources>
