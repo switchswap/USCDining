@@ -47,10 +47,10 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
                     "hallName" to "parkside")
             db.insert("DiningHalls",
                     "id" to 514,
-                    "hallName" to "EVK")
+                    "hallName" to "evk")
             db.insert("DiningHalls",
                     "id" to 27229,
-                    "hallName" to "Village")
+                    "hallName" to "village")
         }
     }
 
