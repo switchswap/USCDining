@@ -27,18 +27,18 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
                 "id" to INTEGER + PRIMARY_KEY,
                 "hallName" to TEXT + NOT_NULL)
 
-        db.createTable("MealItems", true,
+        db.createTable("MenuItems", true,
                 "id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 "itemName" to TEXT + NOT_NULL,
                 "hallId" to INTEGER + NOT_NULL,
-                "mealTime" to TEXT + NOT_NULL,
+                "mealType" to TEXT + NOT_NULL,
                 FOREIGN_KEY("hallId", "DiningHalls", "id"))
 
         db.createTable("ItemAllergens", true,
                 "id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 "allergenName" to TEXT + NOT_NULL,
                 "mealId" to TEXT + NOT_NULL,
-                 FOREIGN_KEY("mealId", "MealItems", "id"))
+                 FOREIGN_KEY("mealId", "MenuItems", "id"))
 
         // Add dining halls
         db.transaction {
