@@ -2,22 +2,20 @@ package me.switchswap.uscdining.parser
 
 import android.content.Context
 import me.switchswap.uscdining.models.DiningHallType
-import me.switchswap.uscdining.models.MealTime
+import me.switchswap.uscdining.models.MealType
 import me.switchswap.uscdining.models.MenuItem
-import org.jetbrains.anko.db.MapRowParser
-import org.jetbrains.anko.db.select
-import java.util.*
+import org.jetbrains.anko.db.*
 import kotlin.collections.ArrayList
 
 /* Class for loading data from database or internet */
-class MenuGrabber(val context: Context){
+class MenuManager(val context: Context){
 
-    fun getMenu(diningHall: DiningHallType, mealTime: MealTime) : ArrayList<MenuItem> = context.database.use {
+    fun getMenu(diningHall: DiningHallType, mealType: MealType) : ArrayList<MenuItem> = context.database.use {
         // Get menu items from database
         val menuItems = ArrayList<MenuItem>()
-        select("MealItems", "id", "title")
+        select("MenuItems", "id", "title")
             .whereArgs("(DiningHallType = {diningHall}) and (mealTime = {mealTime})",
-                    "diningHall" to diningHall.id, "mealTime" to mealTime.timeName)
+                    "diningHall" to diningHall.id, "mealTime" to mealType.timeName)
             .parseList(object: MapRowParser<List<MenuItem>> {
                 override fun parseRow(columns: Map<String, Any?>): List<MenuItem> {
                     val itemId = columns.getValue("id")!!
@@ -37,13 +35,33 @@ class MenuGrabber(val context: Context){
                     )
 
                     // Append menuItems to list and return
-                    val menuItem = MenuItem(itemName.toString(), itemAllergens)
+                    val menuItem = MenuItem(itemName.toString(), itemAllergens, mealType)
                     menuItems.add(menuItem)
                     return menuItems
                 }
             }
         )
         menuItems
+    }
+
+    fun insertItems(menuItems: ArrayList<MenuItem>, hallType: DiningHallType){
+        // Drop tables that will be updated
+        context.database.use{
+            delete("MenuItems")
+            delete("ItemAllergens")
+        }
+
+        // Insert each menu item
+        menuItems.forEach{ menuItem ->
+            context.database.use{
+                val itemId = insert("MenuItems", "itemName" to menuItem.itemName,
+                        "hallId" to hallType.id, "mealType" to menuItem.mealType)
+
+                menuItem.allergens.forEach{ allergen ->
+                    insert("ItemAllergens", "allergenName" to allergen, "mealId" to itemId)
+                }
+            }
+        }
     }
 }
 
