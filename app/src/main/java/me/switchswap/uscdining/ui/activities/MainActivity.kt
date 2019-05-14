@@ -1,20 +1,27 @@
 package me.switchswap.uscdining.ui.activities
 
 import android.os.Bundle
-import android.support.design.widget.NavigationView
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.navigation.NavigationView
+import androidx.core.view.GravityCompat
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import me.switchswap.uscdining.R
+import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.fragments.DatePickerFragment
+import me.switchswap.uscdining.ui.fragments.MenuFragment
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    private lateinit var viewPager: ViewPager
+    private lateinit var tabs: TabLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +36,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val toolbarDate : TextView = findViewById<TextView>(R.id.toolbar_date)
         toolbarDate.text = getString(R.string.date_string, month + 1, day, year % 100)
 
-
+        // Set button listener
         fab.setOnClickListener {
             val datePickerFragment = DatePickerFragment()
             datePickerFragment.show(supportFragmentManager, "datePicker")
@@ -39,7 +46,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
+        // Set navigation drawer listener
         nav_view.setNavigationItemSelectedListener(this)
+
+        // Initialize views and setup view pager
+        initViews()
+        setupViewPager()
+
     }
 
     override fun onBackPressed() {
@@ -84,5 +97,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun initViews() {
+        tabs = findViewById(R.id.tablayout)
+        viewPager = findViewById(R.id.viewpager)
+    }
+
+    private fun setupViewPager() {
+        val adapter = MenuPagerAdapter(supportFragmentManager)
+
+        val breakfastFragment: MenuFragment = MenuFragment()
+        val lunchFragment: MenuFragment = MenuFragment()
+        val dinnerFragment: MenuFragment = MenuFragment()
+
+        adapter.addFragment(breakfastFragment, "Breakfast")
+        adapter.addFragment(lunchFragment, "Lunch")
+        adapter.addFragment(dinnerFragment, "Dinner")
+
+        viewPager.adapter = adapter
+        tabs.setupWithViewPager(viewPager)
     }
 }
