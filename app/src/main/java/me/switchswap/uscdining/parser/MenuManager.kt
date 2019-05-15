@@ -10,12 +10,12 @@ import kotlin.collections.ArrayList
 /* Class for loading data from database or internet */
 class MenuManager(val context: Context){
 
-    fun getMenu(diningHall: DiningHallType, mealType: MealType) : ArrayList<MenuItem> = context.database.use {
+    fun getMenuFromDatabase(diningHall: DiningHallType, mealType: MealType) : ArrayList<MenuItem> = context.database.use {
         // Get menu items from database
         val menuItems = ArrayList<MenuItem>()
         select("MenuItems", "id", "title")
-            .whereArgs("(DiningHallType = {diningHall}) and (mealTime = {mealTime})",
-                    "diningHall" to diningHall.id, "mealTime" to mealType.timeName)
+            .whereArgs("(DiningHallType = {diningHall}) and (mealType = {mealType})",
+                    "diningHall" to diningHall.id, "mealType" to mealType.typeName)
             .parseList(object: MapRowParser<List<MenuItem>> {
                 override fun parseRow(columns: Map<String, Any?>): List<MenuItem> {
                     val itemId = columns.getValue("id")!!

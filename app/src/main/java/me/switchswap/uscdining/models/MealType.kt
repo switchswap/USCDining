@@ -1,6 +1,6 @@
 package me.switchswap.uscdining.models
 
-enum class MealTime(val timeName: String){
+enum class MealType(val typeName: String){
     BREAKFAST("breakfast"),
     BRUNCH("brunch"),
     LUNCH("lunch"),
