@@ -3,7 +3,7 @@ package me.switchswap.uscdining.ui.fragments
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
+import androidx.fragment.app.DialogFragment
 import android.widget.DatePicker
 import android.widget.TextView
 import me.switchswap.uscdining.R
@@ -24,8 +24,8 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, day: Int) {
         // Change toolbar date
-        val toolbarDate = activity!!.findViewById<TextView>(R.id.toolbar_date)
-        toolbarDate.text = getString(R.string.date_string, month + 1, day, year % 100)
+        val toolbarDate : TextView? = activity?.findViewById(R.id.toolbar_date)
+        toolbarDate?.text = getString(R.string.date_string, month + 1, day, year % 100)
 
         // Populate menu
 
