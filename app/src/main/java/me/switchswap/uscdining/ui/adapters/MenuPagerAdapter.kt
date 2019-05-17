@@ -4,27 +4,33 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import me.switchswap.uscdining.models.Menu
+import me.switchswap.uscdining.models.DiningHallType
+import me.switchswap.uscdining.models.MealType
+import me.switchswap.uscdining.ui.fragments.MenuFragment
+import org.jetbrains.anko.db.NULL
 
-class MenuPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm){ //private val menu: Menu
-    private val fragments : ArrayList<Fragment> = ArrayList()
-    private val fragmentTitles : ArrayList<String> = ArrayList()
-
+class MenuPagerAdapter(fm: FragmentManager, private val diningHallType: DiningHallType) : FragmentPagerAdapter(fm){ //private val menu: Menu
     override fun getCount(): Int {
-        return fragments.size
+        return 3
     }
 
     override fun getItem(position: Int): Fragment {
         Log.i("MenuPageAdapter", "Got Item $position")
-        return fragments[position]
+        var fragment: Fragment? = null
+        when(position){
+            0 -> fragment = MenuFragment.newInstance(diningHallType, MealType.BREAKFAST)
+            1 -> fragment = MenuFragment.newInstance(diningHallType, MealType.LUNCH)
+            2 -> fragment =MenuFragment.newInstance(diningHallType, MealType.DINNER)
+        }
+        return fragment!!
     }
 
-    fun addFragment(fragment: Fragment, title: String) {
-        fragments.add(fragment)
-        fragmentTitles.add(title)
-    }
     override fun getPageTitle(position: Int): CharSequence? {
-        Log.i("MenuPageAdapter", "Got Page Title $position")
-        return fragmentTitles[position]
+        return when(position){
+            0 -> "Breakfast"
+            1 -> "Lunch"
+            2 -> "Dinner"
+            else -> "ERROR"
+        }
     }
 }
