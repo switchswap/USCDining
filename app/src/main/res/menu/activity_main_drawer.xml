@@ -9,7 +9,8 @@
         <item
             android:id="@+id/nav_evk"
             android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/evk_dining_hall" />
+            android:title="@string/evk_dining_hall"
+            android:checked="true"/>
         <item
             android:id="@+id/nav_parkside"
             android:icon="@drawable/ic_menu_camera"
