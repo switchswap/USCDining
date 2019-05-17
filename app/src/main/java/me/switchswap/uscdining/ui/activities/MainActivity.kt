@@ -8,20 +8,22 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
-import kotlinx.android.synthetic.main.content_main.*
 import me.switchswap.uscdining.R
+import me.switchswap.uscdining.models.DiningHallType
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.fragments.DatePickerFragment
-import me.switchswap.uscdining.ui.fragments.MenuFragment
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-    private lateinit var viewPager: ViewPager
-    private lateinit var tabs: TabLayout
+    private lateinit var viewPager : ViewPager
+    private lateinit var tabs : TabLayout
+    private var adapters : ArrayList<MenuPagerAdapter> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +53,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         // Initialize views and setup view pager
         initViews()
-        setupViewPager()
-
+        setupAdapters()
+        setupViewPager(0)
     }
 
     override fun onBackPressed() {
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
-            R.id.action_settings -> return true
+            R.id.action_refresh -> return true
             else -> return super.onOptionsItemSelected(item)
         }
     }
@@ -83,17 +85,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle navigation view item clicks here.
         when (item.itemId) {
             R.id.nav_parkside -> {
-
+                setupViewPager(0)
+                Toast.makeText(this, "Parkside", Toast.LENGTH_SHORT).show()
             }
             R.id.nav_evk -> {
-
+                setupViewPager(1)
+                Toast.makeText(this, "EVK", Toast.LENGTH_SHORT).show()
             }
             R.id.nav_village -> {
-
+                setupViewPager(2)
+                Toast.makeText(this, "Village", Toast.LENGTH_SHORT).show()
             }
-//            R.id.nav_settings -> {
-//
-//            }
         }
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
@@ -104,17 +106,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         viewPager = findViewById(R.id.viewpager)
     }
 
-    private fun setupViewPager() {
-        val adapter = MenuPagerAdapter(supportFragmentManager)
+    private fun setupAdapters() {
+        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.EVK))
+        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.PARKSIDE))
+        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.VILLAGE))
+    }
 
-        val breakfastFragment: MenuFragment = MenuFragment()
-        val lunchFragment: MenuFragment = MenuFragment()
-        val dinnerFragment: MenuFragment = MenuFragment()
-
-        adapter.addFragment(breakfastFragment, "Breakfast")
-        adapter.addFragment(lunchFragment, "Lunch")
-        adapter.addFragment(dinnerFragment, "Dinner")
-
+    private fun setupViewPager(adapterIndex : Int) {
+        val adapter = adapters[adapterIndex]
         viewPager.adapter = adapter
         tabs.setupWithViewPager(viewPager)
     }
