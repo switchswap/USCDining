@@ -2,73 +2,117 @@ package me.switchswap.uscdining.parser
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import me.switchswap.uscdining.models.DiningHallType
 import me.switchswap.uscdining.models.MealType
 import me.switchswap.uscdining.models.MenuItem
+import org.jetbrains.anko.toast
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 
 /* Class for grabbing and parsing meal data */
-class MenuParser(private val context: Context){
+class MenuParser {
 
-    fun buildMenu(location: DiningHallType, date: Date){
-        val menuHTML = fetchMenu(location, date)
+    /**
+     * Scrapes menu data from website and builds menu data
+     * Then populates the sqlite database with this menu data
+     * @param context is to access the sqlite database
+     * @param date specifies which day's menu data to return
+     * @return Returns a list of [MenuItem] or null
+     */
+    fun getMenuItems(date: Date): ArrayList<MenuItem>? {
+        // Fetch html
+        val menuHTML: Document? = fetchMenu(date)
 
-        // Parse into menu items
-        val menuItems = parseMenu(menuHTML)
+        return if(menuHTML != null){
+            // Parse into menu items
+            val menuItems: ArrayList<MenuItem> = parseMenu(menuHTML)
+            menuItems
+        }
+        else{
+            // Something went wrong!
+            null
+        }
 
-        // Insert items into database for easy manipulation
-        val menuManager = MenuManager(context)
-        menuManager.insertItems(menuItems, location)
     }
 
     @SuppressLint("SimpleDateFormat")
-    fun buildUrl(location: DiningHallType, date: Date): String{
+    private fun buildUrl(date: Date): String{
         // Format date
         val dateString: String = SimpleDateFormat("MM/dd/yyyy").format(date)
 
         // Build url
-        return "https://hospitality.usc.edu/residential-dining-menus/" +
-                "?menu_venue=venue-${location.id}" + "&menu_date=$dateString"
+        return "https://hospitality.usc.edu/residential-dining-menus/?menu_date=$dateString"
     }
 
     // Fetch menu HTML from url
-    private fun fetchMenu(location: DiningHallType, date: Date): Document{
+    private fun fetchMenu(date: Date) : Document? {
         // Fetch menu html
-        val url: String = buildUrl(location, date)
-        return Jsoup.connect(url).get()
+        val url: String = buildUrl(date)
+        return try {
+            val html = Jsoup.connect(url).get()
+            html
+        }
+        catch (e: Exception){
+            null
+        }
     }
 
-
     // Parse menu HTML into MenuItem objects
-    private fun parseMenu(menuHTML: Document): ArrayList<MenuItem>{
-        // Array of all the mealItems for each meal type
-        val mealItems = ArrayList<MenuItem>()
+    private fun parseMenu(menuHTML: Document): ArrayList<MenuItem> {
+        val menuItems : ArrayList<MenuItem> = ArrayList()
 
-        // Isolate meal type columns (Breakfast, Brunch, Lunch, Dinner)
-        val mealTypeElements = menuHTML.select("div.col-sm-6.col-md-4")
-        mealTypeElements.forEachIndexed { _, mealType ->
+        // Get the meal types (Breakfast, Brunch, Lunch, and Dinner)
+        val mealTypeElements = menuHTML.select("div.hsp-accordian-container")
+        mealTypeElements.forEachIndexed { _, mealTypeElement ->
+            val mealTypeNameElement = mealTypeElement.select("h2 > span.fw-accordion-title-inner").first()
 
-            // Parse values from html data into array
-            val mealTypeTitleElement = mealType.getElementsByClass("menu-venue-title")
-            val mealItemElements = mealType.select("ul.menu-item-list > li")
+            // For each meal type, get each dining hall
+            val diningHallElements = mealTypeElement.select("div.col-sm-6.col-md-4")
+            diningHallElements.forEachIndexed { _, diningHallElement ->
+                val diningHallNameElement = diningHallElement.select("h3.menu-venue-title")
 
-            mealItemElements.forEachIndexed { _, item ->
-                val itemName = item.ownText()
-                val allergens = ArrayList<String>()
+                //For each dining hall, get all items in menu
+                val menuItemElements = diningHallElement.select("ul.menu-item-list > li")
+                menuItemElements.forEachIndexed { _, menuItemElement ->
+                    val itemName = menuItemElement.ownText()
 
-                // Get item allergens and add them to list
-                val mealItemAllergenElements = item.select("span.fa-allergen-container > i > span")
-                mealItemAllergenElements.forEachIndexed { _, allergen ->
-                    allergens.add(allergen.text())
+                    // For each item, get all allergens
+                    val allergens = ArrayList<String>()
+                    val mealItemAllergenElements = menuItemElement.select("span.fa-allergen-container > i > span")
+                    mealItemAllergenElements.forEachIndexed { _, menuItemAllergenElement ->
+                        allergens.add(menuItemAllergenElement.text())
+                    }
+                    menuItems.add(MenuItem(itemName, allergens,
+                            getMealTypeFromString(mealTypeNameElement.text().toUpperCase())!!,
+                            getDiningHallTypeFromString(diningHallNameElement.text())!!))
                 }
-                mealItems.add(MenuItem(itemName, allergens, MealType.valueOf(mealTypeTitleElement.text().toUpperCase())))
             }
         }
-        return mealItems
+        return menuItems
+    }
+
+    private fun getMealTypeFromString(str: String) : MealType? {
+        return when {
+            str.contains("BREAKFAST") -> MealType.BREAKFAST
+            str.contains("BRUNCH") -> MealType.BRUNCH
+            str.contains("LUNCH") -> MealType.LUNCH
+            str.contains("DINNER") -> MealType.DINNER
+            else -> null
+        }
+    }
+
+    private fun getDiningHallTypeFromString(str: String) : DiningHallType? {
+        return when {
+            str.contains("Everybody's Kitchen") -> DiningHallType.EVK
+            str.contains("Parkside Restaurant & Grill") -> DiningHallType.PARKSIDE
+            str.contains("USC Village Dining Hall") -> DiningHallType.VILLAGE
+            else -> null
+        }
     }
 }
