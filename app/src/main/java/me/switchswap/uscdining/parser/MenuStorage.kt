@@ -15,14 +15,30 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
         @Synchronized
         fun getInstance(ctx: Context): MenuStorage {
             if (instance == null) {
-                instance = MenuStorage(ctx.getApplicationContext())
+                instance = MenuStorage(ctx.applicationContext)
             }
             return instance!!
         }
     }
 
+    /**
+     * Create SQL tables
+     * DiningHalls
+     *  - id : int
+     *  - hallName : text
+     *
+     * MenuItems
+     *  - id : int
+     *  - itemName : text
+     *  - mealType : text
+     *  - hallId : int -> DiningHalls.id
+     *
+     * ItemAllergens
+     *  - id : int
+     *  - allergenName : text
+     *  - menuItemId : int -> MenuItems.id
+     */
     override fun onCreate(db: SQLiteDatabase) {
-        // Create SQL tables
         db.createTable("DiningHalls", true,
                 "id" to INTEGER + PRIMARY_KEY,
                 "hallName" to TEXT + NOT_NULL)
@@ -30,15 +46,15 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
         db.createTable("MenuItems", true,
                 "id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 "itemName" to TEXT + NOT_NULL,
-                "hallId" to INTEGER + NOT_NULL,
                 "mealType" to TEXT + NOT_NULL,
+                "hallId" to INTEGER + NOT_NULL,
                 FOREIGN_KEY("hallId", "DiningHalls", "id"))
 
         db.createTable("ItemAllergens", true,
                 "id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 "allergenName" to TEXT + NOT_NULL,
-                "mealId" to TEXT + NOT_NULL,
-                 FOREIGN_KEY("mealId", "MenuItems", "id"))
+                "menuItemId" to TEXT + NOT_NULL,
+                 FOREIGN_KEY("menuItemId", "MenuItems", "id"))
 
         // Add dining halls
         db.transaction {

@@ -1,7 +1,7 @@
 package me.switchswap.uscdining.models
 
 enum class DiningHallType(val id: Int){
+    EVK(514),
     PARKSIDE(518),
-    VILLAGE(27229),
-    EVK(514)
+    VILLAGE(27229)
 }
