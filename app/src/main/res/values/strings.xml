@@ -23,4 +23,11 @@
 
     <!-- main activity -->
     <string name="date_string">%1$d/%2$d/%3$d</string>
+
+    <!-- layout menu item -->
+    <string name="menu_item_default_text">Bacon</string>
+    <string name="menu_item_allergens_default_text">Pork</string>
+
+    <!-- shared prefs -->
+    <string name="pref_menu_date">menuDate</string>
 </resources>
