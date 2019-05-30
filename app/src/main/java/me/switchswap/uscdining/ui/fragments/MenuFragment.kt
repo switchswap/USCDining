@@ -1,39 +1,101 @@
 package me.switchswap.uscdining.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.models.DiningHallType
 import me.switchswap.uscdining.models.MealType
+import me.switchswap.uscdining.models.Menu
+import me.switchswap.uscdining.parser.MenuManager
+import me.switchswap.uscdining.ui.adapters.MenuAdapter
+import java.time.LocalDate
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MenuFragment : Fragment() {
     companion object{
-        fun newInstance(diningHallType: DiningHallType, mealType: MealType): MenuFragment{
-            val fragment = MenuFragment()
-            val bundle = Bundle(1)
-            bundle.putString("msg", diningHallType.id.toString() + mealType.typeName)
-            fragment.arguments = bundle
-            return fragment
+        fun newInstance(diningHallType: DiningHallType, mealType: MealType): MenuFragment {
+            return MenuFragment().apply {
+                arguments = Bundle(2).apply {
+                    putString("diningHallType", diningHallType.name)
+                    putString("mealType", mealType.name)
+                }
+            }
         }
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    private var recyclerViewMenuItems : RecyclerView? = null
+
+    /**
+     * Called for initial creation of fragment
+     * Called after [.onAttach] and before [.onCreateView]
+     * Can still be called while fragment's activity is being created
+     * To do work after the activity is created, use [.onActivityCreated]
+     * Restored child fragments will be created before the base [Fragment.onCreate] method returns.
+     *
+     * @param savedInstanceState is the state if the fragment is being re-created from a previous
+     * saved state
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view: View? = inflater.inflate(R.layout.fragment_menu, container, false)
-        val textView: TextView? = view?.findViewById(R.id.menu_fragment_text)
-        textView?.text =  arguments?.getString("msg")
+        recyclerViewMenuItems = view?.findViewById(R.id.recycler_view_menu_items)
         return view
     }
 
-    fun setText(text: String){
-        view?.findViewById<TextView>(R.id.menu_fragment_text)?.text = text
+    /**
+     * Called immediately after [.onCreateView] returns but before any saved state has been restored
+     * into the view
+     *
+     * Gives subclasses a chance to initialize themselves once they know their view hierarchy has
+     * been completely created. Fragment's view hierarchy is not attached to the parent's now.
+     *
+     * @param view is the View returned by [.onCreateView]
+     * @param savedInstanceState is the fragment being re-created from a previous saved state if
+     * not null
+     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        recyclerViewMenuItems?.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = MenuAdapter(getMenu())
+            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        }
+    }
+
+
+
+    private fun getMenu(): Menu{
+        val diningHallType: DiningHallType = DiningHallType.valueOf(arguments?.getString("diningHallType")!!)
+        val mealType: MealType = MealType.valueOf(arguments?.getString("mealType")!!)
+
+        val menuManager = MenuManager(context!!)
+
+        return Menu(menuManager.getMenu(diningHallType, mealType), Date(1548971445000))
+    }
+
+    private fun getDefaultMenu() : Menu{
+        val menuItems : ArrayList<me.switchswap.uscdining.models.MenuItem> = ArrayList()
+        menuItems.apply {
+            val allergens = ArrayList<String>()
+            allergens.add("Pork")
+
+            add(me.switchswap.uscdining.models.MenuItem("Bacon 1", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
+            add(me.switchswap.uscdining.models.MenuItem("Bacon 2", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
+            add(me.switchswap.uscdining.models.MenuItem("Bacon 3", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
+        }
+        return Menu(menuItems, Date(1548971445000))
     }
 }
 
