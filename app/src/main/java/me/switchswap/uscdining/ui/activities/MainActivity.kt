@@ -1,6 +1,9 @@
 package me.switchswap.uscdining.ui.activities
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.navigation.NavigationView
 import androidx.core.view.GravityCompat
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -8,35 +11,38 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
-import android.widget.Toast
+import androidx.annotation.IdRes
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.models.DiningHallType
+import me.switchswap.uscdining.parser.MenuManager
+import me.switchswap.uscdining.parser.database
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.fragments.DatePickerFragment
+import org.jetbrains.anko.db.delete
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.longToast
+import org.jetbrains.anko.toast
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-    private lateinit var viewPager : ViewPager
-    private lateinit var tabs : TabLayout
-    private var adapters : ArrayList<MenuPagerAdapter> = ArrayList()
+    private val viewPager by lazy(LazyThreadSafetyMode.NONE) {
+        findViewById<ViewPager>(R.id.viewpager)
+    }
 
+    private val tabs by lazy(LazyThreadSafetyMode.NONE) {
+        findViewById<TabLayout>(R.id.tablayout)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-        // Set date
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        val toolbarDate : TextView = findViewById<TextView>(R.id.toolbar_date)
-        toolbarDate.text = getString(R.string.date_string, month + 1, day, year % 100)
 
         // Set button listener
         fab.setOnClickListener {
@@ -51,10 +57,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Set navigation drawer listener
         nav_view.setNavigationItemSelectedListener(this)
 
+
+        // Set action bar date
+        setActionBarDate()
+
         // Initialize views and setup view pager
-        initViews()
-        setupAdapters()
-        setupViewPager(0)
+        setupViewPager(R.id.nav_evk)
+
+        // Delete database values [DEBUG]
+        database.use{
+            delete("MenuItems")
+            delete("ItemAllergens")
+        }
+
+        // Populate database from website if needed
     }
 
     override fun onBackPressed() {
@@ -75,46 +91,85 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        when (item.itemId) {
-            R.id.action_refresh -> return true
-            else -> return super.onOptionsItemSelected(item)
+        return when(item.itemId) {
+            R.id.action_refresh -> {
+                // Populate database from website
+                doAsync{
+                    val menuManager = MenuManager(this@MainActivity)
+                    val databasePopulated = menuManager.populateDatabaseFromWebsite(this@MainActivity, Date(1548971445000))
+
+                    runOnUiThread{
+                        if(databasePopulated){
+                            reloadFragments(supportFragmentManager.fragments)
+                            toast("Success!")
+                        }
+                        else{
+                            longToast("Something went wrong!")
+                        }
+                    }
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
-        when (item.itemId) {
-            R.id.nav_parkside -> {
-                setupViewPager(0)
-                Toast.makeText(this, "Parkside", Toast.LENGTH_SHORT).show()
-            }
-            R.id.nav_evk -> {
-                setupViewPager(1)
-                Toast.makeText(this, "EVK", Toast.LENGTH_SHORT).show()
-            }
-            R.id.nav_village -> {
-                setupViewPager(2)
-                Toast.makeText(this, "Village", Toast.LENGTH_SHORT).show()
-            }
-        }
+        setupViewPager(item.itemId)
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
-    private fun initViews() {
-        tabs = findViewById(R.id.tablayout)
-        viewPager = findViewById(R.id.viewpager)
+    /**
+     * @param selectedItem is the item selected from the navigation drawer
+     * @see onOptionsItemSelected
+     */
+    private fun setupViewPager(@IdRes selectedItem : Int) {
+        val fragmentPagerAdapter : FragmentStatePagerAdapter? = when(selectedItem) {
+            R.id.nav_evk -> {
+                Log.i("setupViewPager", "EVK Selected")
+                MenuPagerAdapter(supportFragmentManager, DiningHallType.EVK)
+            }
+            R.id.nav_parkside -> {
+                Log.i("setupViewPager", "Parkside Selected")
+                MenuPagerAdapter(supportFragmentManager, DiningHallType.PARKSIDE)
+            }
+            R.id.nav_village -> {
+                Log.i("setupViewPager", "Village Selected")
+                MenuPagerAdapter(supportFragmentManager, DiningHallType.VILLAGE)
+            }
+            else -> null
+        }
+
+        fragmentPagerAdapter?.also { adapter ->
+            viewPager.adapter = adapter
+            tabs.setupWithViewPager(viewPager)
+        }
     }
 
-    private fun setupAdapters() {
-        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.EVK))
-        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.PARKSIDE))
-        adapters.add(MenuPagerAdapter(supportFragmentManager, DiningHallType.VILLAGE))
+    private fun setActionBarDate() {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val toolbarDate : TextView? = findViewById(R.id.toolbar_date)
+        toolbarDate?.text = getString(R.string.date_string, month + 1, day, year % 100)
     }
 
-    private fun setupViewPager(adapterIndex : Int) {
-        val adapter = adapters[adapterIndex]
-        viewPager.adapter = adapter
-        tabs.setupWithViewPager(viewPager)
+    private fun reloadFragments(fragments: List<Fragment>) {
+        if(fragments.isEmpty()) return
+
+        fragments.forEach {
+            if (it.isVisible) {
+                val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+                fragmentTransaction.detach(it)
+                fragmentTransaction.attach(it)
+                fragmentTransaction.commit()
+            }
+        }
     }
+    // todo: fix date or use string throughout
+    // todo: background load needed on first menu creation, date change
+    // todo: make gui look pretty / make allergens have custom colored border
 }
