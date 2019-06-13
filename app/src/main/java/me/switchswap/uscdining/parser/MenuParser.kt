@@ -2,10 +2,12 @@ package me.switchswap.uscdining.parser
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import me.switchswap.uscdining.models.DiningHallType
 import me.switchswap.uscdining.models.MealType
 import me.switchswap.uscdining.models.MenuItem
+import me.switchswap.uscdining.util.DateUtil
 import org.jetbrains.anko.toast
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -31,7 +33,7 @@ class MenuParser {
 
         return if(menuHTML != null){
             // Parse into menu items
-            val menuItems: ArrayList<MenuItem> = parseMenu(menuHTML)
+            val menuItems: ArrayList<MenuItem> = parseMenu(menuHTML, date)
             menuItems
         }
         else{
@@ -44,7 +46,9 @@ class MenuParser {
     @SuppressLint("SimpleDateFormat")
     private fun buildUrl(date: Date): String{
         // Format date
-        val dateString: String = SimpleDateFormat("MM/dd/yyyy").format(date)
+        var dateString: String = SimpleDateFormat("MM/dd/yyyy").format(date)
+        // Remove '0' from start if applicable since this breaks the link otherwise
+        dateString = dateString.removePrefix("0")
 
         // Build url
         return "https://hospitality.usc.edu/residential-dining-menus/?menu_date=$dateString"
@@ -59,12 +63,13 @@ class MenuParser {
             html
         }
         catch (e: Exception){
+            Log.d("fetchMenu", e.message)
             null
         }
     }
 
     // Parse menu HTML into MenuItem objects
-    private fun parseMenu(menuHTML: Document): ArrayList<MenuItem> {
+    private fun parseMenu(menuHTML: Document, date: Date): ArrayList<MenuItem> {
         val menuItems : ArrayList<MenuItem> = ArrayList()
 
         // Get the meal types (Breakfast, Brunch, Lunch, and Dinner)
@@ -88,9 +93,11 @@ class MenuParser {
                     mealItemAllergenElements.forEachIndexed { _, menuItemAllergenElement ->
                         allergens.add(menuItemAllergenElement.text())
                     }
+
                     menuItems.add(MenuItem(itemName, allergens,
                             getMealTypeFromString(mealTypeNameElement.text().toUpperCase())!!,
-                            getDiningHallTypeFromString(diningHallNameElement.text())!!))
+                            getDiningHallTypeFromString(diningHallNameElement.text())!!,
+                            date.time))
                 }
             }
         }

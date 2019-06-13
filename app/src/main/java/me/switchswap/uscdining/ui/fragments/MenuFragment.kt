@@ -1,5 +1,6 @@
 package me.switchswap.uscdining.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,6 +17,7 @@ import me.switchswap.uscdining.models.MealType
 import me.switchswap.uscdining.models.Menu
 import me.switchswap.uscdining.parser.MenuManager
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
+import me.switchswap.uscdining.util.DateUtil
 import java.time.LocalDate
 import java.util.*
 import kotlin.collections.ArrayList
@@ -77,25 +79,13 @@ class MenuFragment : Fragment() {
 
 
     private fun getMenu(): Menu{
+        val dateUtil = DateUtil()
         val diningHallType: DiningHallType = DiningHallType.valueOf(arguments?.getString("diningHallType")!!)
         val mealType: MealType = MealType.valueOf(arguments?.getString("mealType")!!)
 
         val menuManager = MenuManager(context!!)
 
-        return Menu(menuManager.getMenu(diningHallType, mealType), Date(1548971445000))
-    }
-
-    private fun getDefaultMenu() : Menu{
-        val menuItems : ArrayList<me.switchswap.uscdining.models.MenuItem> = ArrayList()
-        menuItems.apply {
-            val allergens = ArrayList<String>()
-            allergens.add("Pork")
-
-            add(me.switchswap.uscdining.models.MenuItem("Bacon 1", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
-            add(me.switchswap.uscdining.models.MenuItem("Bacon 2", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
-            add(me.switchswap.uscdining.models.MenuItem("Bacon 3", allergens, MealType.BREAKFAST, DiningHallType.PARKSIDE))
-        }
-        return Menu(menuItems, Date(1548971445000))
+        return Menu(menuManager.getMenu(diningHallType, mealType, dateUtil.readDate(activity)))
     }
 }
 

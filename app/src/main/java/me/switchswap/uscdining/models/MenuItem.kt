@@ -4,7 +4,8 @@ package me.switchswap.uscdining.models
 data class MenuItem (val itemName: String,
                      val allergens: ArrayList<String>,
                      val mealType: MealType,
-                     val diningHallType: DiningHallType) {
+                     val diningHallType: DiningHallType,
+                     val date: Long) {
 
     fun hasAllergen(allergen: String): Boolean {
         return allergen in allergens

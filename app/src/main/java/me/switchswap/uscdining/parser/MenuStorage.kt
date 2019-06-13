@@ -2,6 +2,7 @@ package me.switchswap.uscdining.parser
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import org.jetbrains.anko.db.*
 
 class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", null, 1) {
@@ -31,6 +32,7 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
      *  - id : int
      *  - itemName : text
      *  - mealType : text
+     *  - date: int
      *  - hallId : int -> DiningHalls.id
      *
      * ItemAllergens
@@ -47,6 +49,7 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
                 "id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 "itemName" to TEXT + NOT_NULL,
                 "mealType" to TEXT + NOT_NULL,
+                "itemDate" to INTEGER + NOT_NULL,
                 "hallId" to INTEGER + NOT_NULL,
                 FOREIGN_KEY("hallId", "DiningHalls", "id"))
 
@@ -71,8 +74,11 @@ class MenuStorage(ctx: Context) : ManagedSQLiteOpenHelper(ctx, "MenuDatabase", n
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        Log.d("onUpgrade", "Upgraded database!")
+        db.dropTable("DiningHalls", true)
         db.dropTable("MealItems", true)
         db.dropTable("ItemAllergens", true)
+        onCreate(db)
     }
 }
 // Access property for Context
