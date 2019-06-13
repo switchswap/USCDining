@@ -36,24 +36,42 @@ class MenuManagerTest{
             delete("ItemAllergens")
         }
 
-        println("Creating MenuManager...")
+        Log.d("populateDatabaseFromWebsiteTest", "Creating MenuManager...")
         val mm = MenuManager(appContext)
 
         Log.d("populateDatabaseFromWebsiteTest", "Getting EVK breakfast menu...")
-        val evkBreakfastListEmpty: ArrayList<MenuItem> = mm.getMenu(DiningHallType.EVK, MealType.BREAKFAST)
+        val evkBreakfastListEmpty: ArrayList<MenuItem> = mm.getMenu(DiningHallType.EVK, MealType.BREAKFAST, 1548971445000)
 
         // Assert menu is empty
         assertEquals(evkBreakfastListEmpty.size, 0)
 
         Log.d("populateDatabaseFromWebsiteTest", "Attempting to populate database...")
-        mm.populateDatabaseFromWebsite(appContext, date)
+        mm.populateDatabaseFromWebsite(date)
         Log.d("populateDatabaseFromWebsiteTest", "Database populated!")
 
-        val evkBreakfastListFull: ArrayList<MenuItem> = mm.getMenu(DiningHallType.EVK, MealType.BREAKFAST)
+        val evkBreakfastListFull: ArrayList<MenuItem> = mm.getMenu(DiningHallType.EVK, MealType.BREAKFAST, 1548971445000)
 
         // Assert menu is empty
         assertNotEquals(evkBreakfastListFull.size, 0)
         Log.d("populateDatabaseFromWebsiteTest", "Ended!")
+    }
+
+    @Test
+    fun checkMenuExistsTest(){
+        appContext.database.use{
+            delete("MenuItems")
+            delete("ItemAllergens")
+        }
+
+        val date = Date(1548971445000)
+        val mm = MenuManager(appContext)
+        mm.populateDatabaseFromWebsite(date)
+
+        // Assert that the menu exists for the date that was just retrieved thus true
+        assertEquals(mm.checkMenuExists(DiningHallType.PARKSIDE, 1548971445000), true)
+
+        // Assert that this random date returns no items thus false
+        assertEquals(mm.checkMenuExists(DiningHallType.PARKSIDE, 154893745000), false)
     }
 }
 
