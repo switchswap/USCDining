@@ -8,16 +8,16 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/nav_evk"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/baseline_fastfood_24"
             android:title="@string/evk_dining_hall"
             android:checked="true"/>
         <item
             android:id="@+id/nav_parkside"
-            android:icon="@drawable/ic_menu_camera"
+            android:icon="@drawable/baseline_local_cafe_24"
             android:title="@string/parkside_dining_hall" />
         <item
             android:id="@+id/nav_village"
-            android:icon="@drawable/ic_menu_slideshow"
+            android:icon="@drawable/baseline_location_city_24"
             android:title="@string/village_dining_hall" />
     </group>
 </menu>
