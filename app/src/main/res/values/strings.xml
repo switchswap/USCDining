@@ -22,6 +22,7 @@
     <string name="tab_brunch">BRUNCH</string>
 
     <!-- main activity -->
+    <string name="date_string_default">[Insert date]</string>
     <string name="date_string">%1$d/%2$d/%3$d</string>
 
     <!-- layout menu item -->

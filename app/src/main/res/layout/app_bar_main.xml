@@ -25,7 +25,7 @@
                 android:id="@+id/toolbar_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="[Insert date]"
+                android:text="@string/date_string_default"
                 android:textSize="20sp"/>
 
         </androidx.appcompat.widget.Toolbar>
