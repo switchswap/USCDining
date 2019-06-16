@@ -12,13 +12,16 @@
         android:text="@string/menu_item_default_text"
         android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/menu_item_allergens"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/allergen_bg"
-        android:padding="3dp"
-        android:text="@string/menu_item_allergens_default_text"
-        android:textSize="12sp" />
+    <ScrollView
+        android:id="@+id/menu_item_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/menu_item_allergens"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </ScrollView>
 
 </LinearLayout>
