@@ -35,6 +35,21 @@ class MenuManager(private val context: Context) {
     }
 
     /**
+     * Gets and integer representation of the open dining halls
+     * Format is EVK Parkside Village
+     * @return integer representing the open dining halls where 1 is open and 0 is closed
+     */
+    fun getOpenDiningHalls(date: Long): Int {
+        var openHalls = 0
+        if(checkMenuExists(DiningHallType.EVK, date)) openHalls += 100
+        if(checkMenuExists(DiningHallType.PARKSIDE, date)) openHalls += 10
+        if(checkMenuExists(DiningHallType.VILLAGE, date)) openHalls += 1
+
+        return openHalls
+    }
+
+
+    /**
      * Retrieves menu from the USC residential dining halls website and populates SQLite database
      * @param date specifies which date to get menu for
      *
