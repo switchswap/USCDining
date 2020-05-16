@@ -22,6 +22,17 @@ android {
     }
 }
 
+androidExtensions {
+    experimental = true
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        maven { url "https://jitpack.io" }
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -36,4 +47,5 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.10.3'
     implementation 'com.afollestad.material-dialogs:core:3.0.0-rc2'
     implementation 'com.afollestad.material-dialogs:datetime:3.0.0-rc2'
+    implementation 'com.github.switchswap:usc-menu-kt:0.0.1'
 }
