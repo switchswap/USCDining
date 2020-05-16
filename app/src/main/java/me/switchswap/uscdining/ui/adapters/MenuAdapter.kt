@@ -1,7 +1,6 @@
 package me.switchswap.uscdining.ui.adapters
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.menu_item.view.*
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.models.AllergenType
-import me.switchswap.uscdining.models.Menu
+import models.MenuItem
+import java.util.HashMap
 
-class MenuAdapter(val menu: Menu) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
+class MenuAdapter(val menu: List<MenuItem>) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
     /**
      * Creates view holder to be passed into [MenuViewHolder]
@@ -28,14 +28,14 @@ class MenuAdapter(val menu: Menu) : RecyclerView.Adapter<MenuAdapter.MenuViewHol
      * Returns size of our list
      */
     override fun getItemCount(): Int {
-        return menu.menuItems.size
+        return menu.size
     }
 
     /**
      * Binds the actual data with the ViewHolder
      */
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
-        val menuItem = menu.menuItems[position]
+        val menuItem = menu[position]
         holder.view.menu_item_name.text = menuItem.itemName
 
         menuItem.allergens.forEach {
