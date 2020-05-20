@@ -124,4 +124,44 @@ class MenuDatabaseTests {
     companion object {
         val TAG = MenuDatabaseTests::class.java.simpleName
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun testMenuItemDrop() {
+        runBlocking {
+            // Insert a MenuItem
+            val menuItemId: Int = menuDao.insertMenuItem(menuItemA).toInt()
+
+            // Insert an Allergen
+            menuDao.insertAllergens(listOf(Allergen(0,"Chicken",menuItemId)))
+        }
+
+        // Verify that these were added
+        var menuItemAndAllergens: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(1, ItemType.BREAKFAST.typeName, 1L)
+        assertEquals(1, menuItemAndAllergens.size)
+        assertEquals(1, menuItemAndAllergens[0].allergens.size)
+
+        runBlocking {
+            menuDao.dropMenuItems()
+        }
+
+        // Verify that the item was dropped
+        menuItemAndAllergens = menuDao.getMenuItems(1, ItemType.BREAKFAST.typeName, 1L)
+        assertEquals(0, menuItemAndAllergens.size)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDiningHallTypeConverter() {
+        runBlocking {
+            menuDao.insertDiningHalls(listOf(DiningHall(DiningHallType.EVK.id, DiningHallType.EVK.name)))
+            menuDao.insertMenuItem( MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, DiningHallType.EVK.id))
+        }
+
+        // Verify that the item was dropped
+        val menuItemAndAllergens: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(DiningHallType.EVK, ItemType.BREAKFAST.typeName, 1L)
+        assertEquals(1, menuItemAndAllergens.size)
+    }
 }
