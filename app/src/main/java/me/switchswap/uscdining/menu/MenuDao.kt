@@ -1,12 +1,10 @@
 package me.switchswap.uscdining.menu
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
+import models.DiningHallType
 
 @Dao
-public interface MenuDao {
+interface MenuDao {
     /**
      * Check if menu exists for a given dining hall type and a given date
      */
@@ -25,7 +23,10 @@ public interface MenuDao {
      */
     @Transaction
     @Query("SELECT * FROM MenuItems WHERE hall_id = :hallId AND type = :type AND date = :date")
-    fun getMenuItems(hallId: Long, type: String, date: Long): List<MenuItemAndAllergens>
+    fun getMenuItems(hallId: Int, type: String, date: Long): List<MenuItemAndAllergens>
+    @Transaction
+    @Query("SELECT * FROM MenuItems WHERE hall_id = :diningHallType AND type = :type AND date = :date")
+    fun getMenuItems(diningHallType: DiningHallType, type: String, date: Long): List<MenuItemAndAllergens>
 
     @Insert
     suspend fun insertMenuItem(menuItem: MenuItem) : Long
@@ -38,4 +39,11 @@ public interface MenuDao {
      */
     @Insert
     suspend fun insertDiningHalls(diningHalls: List<DiningHall>): List<Long>
+
+    /**
+     * Deletes all MenuItems
+     * By the schema, the corresponding allergens will also be deleted
+     */
+    @Query("DELETE FROM MenuItems")
+    suspend fun dropMenuItems()
 }
