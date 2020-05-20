@@ -21,38 +21,29 @@ import androidx.room.*
  *  - menuItemId : int -> MenuItems.id
  */
 
-@Entity(tableName = "DiningHalls")
-data class DiningHall (
-    @PrimaryKey val id: Long,
-    val name: String
+@Entity(tableName = "DiningHalls", indices = [Index("id", unique = true)])
+data class DiningHall(
+        @PrimaryKey val id: Int,
+        val name: String
 )
 
 @Entity(tableName = "MenuItems", foreignKeys = [ForeignKey(entity = DiningHall::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("hall_id"),
-        onDelete = ForeignKey.CASCADE)])
-data class MenuItem (
+        onDelete = ForeignKey.CASCADE)], indices = [Index("id", unique = true)])
+data class MenuItem(
         @PrimaryKey(autoGenerate = true) val id: Int,
         val name: String,
         val type: String,
         val category: String,
         val date: Long,
-        @ColumnInfo(name = "hall_id") val hallId: Long
-)
-
-data class DiningHallAndMenuItems (
-        @Embedded val diningHall: DiningHall,
-        @Relation (
-                parentColumn = "id",
-                entityColumn = "hall_id"
-        )
-        val menuItems: List<MenuItem>
+        @ColumnInfo(name = "hall_id") val hallId: Int
 )
 
 @Entity(tableName = "Allergens", foreignKeys = [ForeignKey(entity = MenuItem::class,
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("menu_item_id"),
-        onDelete = ForeignKey.CASCADE)])
+        onDelete = ForeignKey.CASCADE)], indices = [Index("id", unique = true)])
 data class Allergen (
         @PrimaryKey(autoGenerate = true) val id: Int,
         val name: String,
