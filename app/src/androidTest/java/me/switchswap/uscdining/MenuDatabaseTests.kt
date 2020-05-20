@@ -1,21 +1,16 @@
 package me.switchswap.uscdining
 
 import android.content.Context
-import android.util.Log
-import android.view.Menu
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.runner.AndroidJUnit4
 import junit.framework.Assert.*
 import kotlinx.coroutines.runBlocking
 import me.switchswap.uscdining.menu.*
-import me.switchswap.uscdining.ui.fragments.MenuFragment
+import models.DiningHallType
 import models.ItemType
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -30,10 +25,10 @@ class MenuDatabaseTests {
     private lateinit var db: AppDatabase
     private lateinit var menuDao: MenuDao
 
-    private val diningHall = DiningHall(1L, "TestHall")
-    private val menuItemA = MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, 1L)
-    private val menuItemB = MenuItem(0, "Bread", ItemType.LUNCH.typeName, "Temp", 1L, 1L)
-    private val menuItemC = MenuItem(0, "Cheese", ItemType.DINNER.typeName, "Temp", 1L, 1L)
+    private val diningHall = DiningHall(1, "TestHall")
+    private val menuItemA = MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, 1)
+    private val menuItemB = MenuItem(0, "Bread", ItemType.LUNCH.typeName, "Temp", 1L, 1)
+    private val menuItemC = MenuItem(0, "Cheese", ItemType.DINNER.typeName, "Temp", 1L, 1)
 
 
     @Before
@@ -61,7 +56,7 @@ class MenuDatabaseTests {
         val diningHalls: List<DiningHall> = menuDao.getDiningHalls()
         var found: Boolean = false
         for (diningHall: DiningHall in diningHalls) {
-            if (diningHall.id == 1L) {
+            if (diningHall.id == 1) {
                 found = true
                 break
             }
@@ -75,7 +70,7 @@ class MenuDatabaseTests {
         val diningHalls: List<DiningHall> = menuDao.getDiningHalls()
         var found: Boolean = false
         for (diningHall: DiningHall in diningHalls) {
-            if (diningHall.id == 5L) {
+            if (diningHall.id == 5) {
                 found = true
                 break
             }
@@ -97,7 +92,7 @@ class MenuDatabaseTests {
         assertEquals(ItemType.BREAKFAST.typeName, menuItemAndAllergens[0].menuItem.type)
         assertEquals("Temp", menuItemAndAllergens[0].menuItem.category)
         assertEquals(1L, menuItemAndAllergens[0].menuItem.date)
-        assertEquals(1L, menuItemAndAllergens[0].menuItem.hallId)
+        assertEquals(1, menuItemAndAllergens[0].menuItem.hallId)
 
         // There should be no allergens returned since there were none inserted
         assertEquals(0, menuItemAndAllergens[0].allergens.size)
@@ -115,9 +110,9 @@ class MenuDatabaseTests {
         }
 
         // Get all MenuItems from db along with their corresponding allergens
-        val menuItemAndAllergens: List<MenuItemAndAllergens> = menuDao.getMenuItems(1, ItemType.BREAKFAST.typeName, 1L)
+        val menuItemAndAllergens: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(1, ItemType.BREAKFAST.typeName, 1L)
         assertEquals(1, menuItemAndAllergens.size)
-
         assertEquals(3, menuItemAndAllergens[0].allergens.size)
     }
 
