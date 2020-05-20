@@ -29,7 +29,7 @@ interface MenuDao {
     fun getMenuItems(diningHallType: DiningHallType, type: String, date: Long): List<MenuItemAndAllergens>
 
     @Insert
-    suspend fun insertMenuItem(menuItem: MenuItem) : Long
+    suspend fun insertMenuItem(menuItem: MenuItem): Long
 
     @Insert
     suspend fun insertAllergens(allergens: List<Allergen>)
