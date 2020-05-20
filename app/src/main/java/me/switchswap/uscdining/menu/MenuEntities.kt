@@ -3,7 +3,6 @@ package me.switchswap.uscdining.menu
 import androidx.room.*
 
 /**
- * Create SQL tables
  * DiningHalls
  *  - id : int
  *  - hallName : text
@@ -21,22 +20,24 @@ import androidx.room.*
  *  - allergenName : text
  *  - menuItemId : int -> MenuItems.id
  */
+
 @Entity(tableName = "DiningHalls")
 data class DiningHall (
     @PrimaryKey val id: Long,
     val name: String
 )
 
-@Entity(tableName = "MenuItems")
+@Entity(tableName = "MenuItems", foreignKeys = [ForeignKey(entity = DiningHall::class,
+        parentColumns = arrayOf("id"),
+        childColumns = arrayOf("hall_id"),
+        onDelete = ForeignKey.CASCADE)])
 data class MenuItem (
-        @PrimaryKey(autoGenerate = true)
-        val id: Long,
+        @PrimaryKey(autoGenerate = true) val id: Int,
         val name: String,
         val type: String,
         val category: String,
         val date: Long,
-        @ColumnInfo(name = "hall_id")
-        val hallId: Int
+        @ColumnInfo(name = "hall_id") val hallId: Long
 )
 
 data class DiningHallAndMenuItems (
@@ -48,14 +49,14 @@ data class DiningHallAndMenuItems (
         val menuItems: List<MenuItem>
 )
 
-@Entity(tableName = "Allergens")
+@Entity(tableName = "Allergens", foreignKeys = [ForeignKey(entity = MenuItem::class,
+        parentColumns = arrayOf("id"),
+        childColumns = arrayOf("menu_item_id"),
+        onDelete = ForeignKey.CASCADE)])
 data class Allergen (
-        @PrimaryKey(autoGenerate = true)
-        val id: Int,
-        @ColumnInfo(name = "name")
+        @PrimaryKey(autoGenerate = true) val id: Int,
         val name: String,
-        @ColumnInfo(name = "menu_item_id")
-        val menuItemId: Int
+        @ColumnInfo(name = "menu_item_id") val menuItemId: Int
 )
 
 data class MenuItemAndAllergens (
