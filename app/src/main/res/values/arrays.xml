@@ -1,0 +1,14 @@
+<resources>
+    <!-- Default Dining Hall Preference -->
+    <string-array name="hall_entries">
+        <item>Everybody\'s Kitchen</item>
+        <item>Parkside Restaurant &amp; Grill</item>
+        <item>USC Village Dining Hall</item>
+    </string-array>
+
+    <string-array name="hall_values">
+        <item>evk</item>
+        <item>parkside</item>
+        <item>village</item>
+    </string-array>
+</resources>

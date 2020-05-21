@@ -1,0 +1,36 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+app:iconSpaceReserved="false">
+
+<PreferenceCategory
+    app:iconSpaceReserved="false"
+    app:title="@string/header_settings">
+
+    <ListPreference
+        app:iconSpaceReserved="false"
+        app:key="@string/pref_default_hall"
+        app:defaultValue="evk"
+        app:title="@string/title_default_hall"
+        app:summary="@string/summary_default_hall"
+        app:entries="@array/hall_entries"
+        app:entryValues="@array/hall_values"/>
+</PreferenceCategory>
+
+<PreferenceCategory
+    app:iconSpaceReserved="false"
+    app:title="@string/header_about">
+
+    <Preference
+        app:iconSpaceReserved="false"
+        app:title="@string/title_version"
+        app:summary="@string/summary_version"/>
+    <Preference
+        app:iconSpaceReserved="false"
+        app:title="@string/title_github"
+        app:summary="@string/summary_github"/>
+    <Preference
+        app:fragment="me.switchswap.uscdining.ui.activities.SettingsActivity$MessagesFragment"
+        app:iconSpaceReserved="false"
+        app:title="@string/title_licences"
+        app:summary="@string/summary_licenses"/>
+</PreferenceCategory>
+</PreferenceScreen>
