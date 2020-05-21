@@ -51,9 +51,12 @@
     <string name="summary_licenses">Additional software used in this application</string>
     <string name="pref_default_hall">default_hall</string>
 
-    <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
+    <!-- Credits Titles -->
+    <string name="title_usc_menu_kt">USC-Menu-kt</string>
+    <string name="summary_usc_menu_kt">https://github.com/switchswap/usc-menu-kt</string>
+
+    <string name="title_material_dialogs">material-dialogs</string>
+    <string name="summary_material_dialogs">https://github.com/afollestad/material-dialogs</string>
 
     <!-- Placeholder Strings -->
     <string name="title_placeholder">Sync email periodically</string>

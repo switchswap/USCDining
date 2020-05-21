@@ -2,14 +2,10 @@
 
     <Preference
         app:iconSpaceReserved="false"
-        app:title="@string/title_placeholder"
-        app:summary="@string/summary_placeholder" />
+        app:title="@string/title_usc_menu_kt"
+        app:summary="@string/summary_usc_menu_kt" />
     <Preference
         app:iconSpaceReserved="false"
-        app:title="@string/title_placeholder"
-        app:summary="@string/summary_placeholder" />
-    <Preference
-        app:iconSpaceReserved="false"
-        app:title="@string/title_placeholder"
-        app:summary="@string/summary_placeholder" />
+        app:title="@string/title_material_dialogs"
+        app:summary="@string/summary_material_dialogs" />
 </PreferenceScreen>
