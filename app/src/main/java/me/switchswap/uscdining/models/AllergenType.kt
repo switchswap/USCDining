@@ -1,5 +1,7 @@
 package me.switchswap.uscdining.models
 
+import java.util.*
+
 enum class AllergenType(val allergenName: String, val color: Int) {
     DAIRY("Dairy", 0x8224E3),
     EGGS("Eggs", 0xFFE751),
@@ -17,6 +19,6 @@ enum class AllergenType(val allergenName: String, val color: Int) {
 
     companion object {
         fun fromName(name: String): AllergenType? = values()
-                .find { it.allergenName.toLowerCase() == name.toLowerCase() }
+                .find { it.allergenName.toLowerCase(Locale.ROOT) == name.toLowerCase(Locale.ROOT) }
     }
 }
