@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
-import junit.framework.Assert.assertEquals
+import junit.framework.Assert.*
 import kotlinx.coroutines.runBlocking
 import me.switchswap.uscdining.data.*
 import models.DiningHallType
@@ -98,5 +98,35 @@ class MenuManagerTest {
 
             assertEquals(11, menuItems.size)
         }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDateHasBrunchTrue() {
+        val menuManager = MenuManager(menuDao)
+        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        val dateString = "02/22/2020"
+        val date: Date = simpleDateFormat.parse(dateString)!!
+
+        runBlocking {
+            menuManager.getMenuFromWeb(date.time)
+        }
+
+        assertTrue(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date.time))
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDateHasBrunchFalse() {
+        val menuManager = MenuManager(menuDao)
+        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        val dateString = "02/21/2020"
+        val date: Date = simpleDateFormat.parse(dateString)!!
+
+        runBlocking {
+            menuManager.getMenuFromWeb(date.time)
+        }
+
+        assertFalse(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date.time))
     }
 }
