@@ -42,6 +42,7 @@ class MenuManager(private val menuDao: MenuDao?) {
         insertItems(diningMenu.evk, DiningHallType.EVK)
         insertItems(diningMenu.village, DiningHallType.VILLAGE)
     }
+
     private suspend fun insertItems(hallMenu: HallMenu, diningHallType: DiningHallType) {
         if (menuDao == null) return
 
@@ -50,6 +51,7 @@ class MenuManager(private val menuDao: MenuDao?) {
         insertItems(hallMenu.lunch, diningHallType, hallMenu.date)
         insertItems(hallMenu.dinner, diningHallType, hallMenu.date)
     }
+
     private suspend fun insertItems(menuItems: HashMap<String, MenuItem>, diningHallType: DiningHallType, date: Date) {
         if (menuDao == null) return
 
