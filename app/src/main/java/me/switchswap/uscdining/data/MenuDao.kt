@@ -18,6 +18,12 @@ interface MenuDao {
     fun getDiningHalls(): List<DiningHall>
 
     /**
+     * Check if given dining hall on a given day is serving brunch
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM MenuItems where date = :date AND hall_id = :diningHallType AND type = \"brunch\")")
+    fun hallHasBrunch(diningHallType: DiningHallType, date: Long): Boolean
+
+    /**
      * Retrieves an ArrayList of MenuItems from SQLite database for a given dining hall, item type,
      * and date
      */
