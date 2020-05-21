@@ -1,52 +1,47 @@
 package me.switchswap.uscdining.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import com.google.android.material.navigation.NavigationView
 import androidx.core.view.GravityCompat
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.IdRes
-import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.fragment.app.FragmentTransaction
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.preference.PreferenceManager
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.datetime.datePicker
 import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import me.switchswap.uscdining.R
-import me.switchswap.uscdining.models.DiningHallType
-import me.switchswap.uscdining.parser.MenuManager
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
+import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.longToast
-import org.jetbrains.anko.toast
+import models.DiningHallType
 import java.util.*
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-    private val dateUtil = DateUtil()
-    private var isRefreshing = false
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, FragmentInteractionListener {
 
     private val viewPager by lazy(LazyThreadSafetyMode.NONE) {
         findViewById<ViewPager>(R.id.viewpager)
     }
 
-    private val tabs by lazy(LazyThreadSafetyMode.NONE) {
+    private val tabLayout by lazy(LazyThreadSafetyMode.NONE) {
         findViewById<TabLayout>(R.id.tablayout)
+    }
+
+    private val dateUtil by lazy {
+        DateUtil(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
@@ -57,49 +52,50 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         // Set navigation drawer listener
         nav_view.setNavigationItemSelectedListener(this)
+        viewPager.offscreenPageLimit = 2
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        // Set system prefs date
+        dateUtil.writeDate(DateUtil.convertDate(Calendar.getInstance()))
 
         // Set action bar date
         setActionBarDate()
 
-        // Set system prefs date
-        dateUtil.writeDate(this, dateUtil.convertDate(Calendar.getInstance()))
-
         // Initialize views and setup view pager
         setupViewPager()
 
-        // Set refresh layout listener
-        val refreshLayout: SwipeRefreshLayout = findViewById(R.id.refresh_layout)
-        refreshLayout.apply {
-            setColorSchemeResources(R.color.colorAccent)
-
-            setOnRefreshListener {
-                // On refresh, use date from prefs
-                reloadMenu(dateUtil.readDate(this@MainActivity))
-            }
-        }
-
-        // Set button listener
-        fab.setOnClickListener {
+        // Set button listener for date button
+        fab_date.setOnClickListener {
+            // Create date picker on click
             MaterialDialog(this).show {
                 val currentDate = Calendar.getInstance().apply {
-                    val date = dateUtil.readDate(this@MainActivity)
-                    time = Date(dateUtil.readDate(this@MainActivity))
+                    time = Date(dateUtil.readDate())
                 }
+
+                // Todo: Set maxDate parameter to one week past current date
                 datePicker(currentDate = currentDate) { _, date ->
                     // Use date (Calendar)
                     setActionBarDate(date)
 
                     // Update shared preference
-                    val unixTimeStamp = dateUtil.convertDate(date)
-                    dateUtil.writeDate(this@MainActivity, unixTimeStamp)
+                    val unixTimeStamp = DateUtil.convertDate(date)
+                    dateUtil.writeDate(unixTimeStamp)
 
-                    // Reload menu
-                    reloadMenu(unixTimeStamp)
+                    // Reconfigure dinning halls upon date change
+                    configureDiningHalls()
                 }
             }
         }
+
+        nav_settings.setOnClickListener {
+            val settingsIntent = Intent(applicationContext, SettingsActivity::class.java)
+            startActivity(settingsIntent)
+        }
+
         // Populate database from website if needed
-        reloadMenu(dateUtil.readDate(this))
+        configureDiningHalls()
     }
 
     override fun onBackPressed() {
@@ -111,7 +107,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu
+        // This adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
         return true
     }
@@ -136,24 +133,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-
     /**
-     * Setup [ViewPager] such that if it is scrolled horizontally, the [SwipeRefreshLayout] is not
-     * activated by accident
+     * Setup [ViewPager] such that it shows the correct tab as set by the user in settings
      */
-    private fun setupViewPager(){
-        viewPager.addOnPageChangeListener(object: ViewPager.OnPageChangeListener {
-            override fun onPageSelected(position: Int) {}
+    private fun setupViewPager() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
-
-            // If scroll state is not idle, disable SwipeRefreshLayout
-            override fun onPageScrollStateChanged(state: Int) {
-                enableDisableSwipeRefresh(state == ViewPager.SCROLL_STATE_IDLE)
-            }
-        })
-
-        changeViewPager(R.id.nav_evk)
+        // Todo: Think about inlining this variable even though I don't like it
+        // Todo: Make values not hard-coded
+        val defaultHall: String = sharedPreferences.getString(getString(R.string.pref_default_hall), "") ?: ""
+        when (defaultHall) {
+            "evk" -> changeViewPager(R.id.nav_evk)
+            "parkside" -> changeViewPager(R.id.nav_parkside)
+            "village" -> changeViewPager(R.id.nav_village)
+            else -> changeViewPager(R.id.nav_evk)
+        }
     }
 
     /**
@@ -164,14 +158,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val fragmentPagerAdapter : FragmentStatePagerAdapter? = when(selectedItem) {
             R.id.nav_evk -> {
                 title = "EVK"
+                nav_view.setCheckedItem(R.id.nav_evk)
                 MenuPagerAdapter(supportFragmentManager, DiningHallType.EVK)
             }
             R.id.nav_parkside -> {
                 title = "Parkside"
+                nav_view.setCheckedItem(R.id.nav_parkside)
                 MenuPagerAdapter(supportFragmentManager, DiningHallType.PARKSIDE)
             }
             R.id.nav_village -> {
                 title = "Village"
+                nav_view.setCheckedItem(R.id.nav_village)
                 MenuPagerAdapter(supportFragmentManager, DiningHallType.VILLAGE)
             }
             else -> null
@@ -179,7 +176,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         fragmentPagerAdapter?.also { adapter ->
             viewPager.adapter = adapter
-            tabs.setupWithViewPager(viewPager)
+            tabLayout.setupWithViewPager(viewPager)
         }
     }
 
@@ -191,100 +188,29 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toolbarDate?.text = getString(R.string.date_string, month + 1, day, year % 100)
     }
 
-    private fun reloadFragments(fragments: List<Fragment>) {
-        if(fragments.isEmpty()) return
-
-        fragments.forEach {
-            if (it.isVisible) {
-                val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-                fragmentTransaction.detach(it)
-                fragmentTransaction.attach(it)
-                fragmentTransaction.commit()
-            }
-        }
-    }
-
     /**
-     * Reloads menu by checking database for items
-     * If no items are found for a given day, populate database from website and load from there
+     * Updates the navigation view depending on the presence of certain items
      *
      * @param unixTimeStamp is the date for which to retrieve the menu
      */
-    private fun reloadMenu(unixTimeStamp: Long?) {
+    // Todo: Function may or may not be needed
+    private fun configureDiningHalls(unixTimeStamp: Long? = dateUtil.readDate()) {
         if(unixTimeStamp == null) return
-
-        isRefreshing = true
-
-        val refreshLayout: SwipeRefreshLayout = findViewById(R.id.refresh_layout)
-        refreshLayout.isRefreshing = true
-
-
-        doAsync{
-            val menuManager = MenuManager(this@MainActivity)
-
-            // Check if data exists already
-            var menuExists: Boolean = menuManager.checkMenuExists(null, dateUtil.readDate(this@MainActivity))
-
-            if(!menuExists){
-                // Populate database from website
-                Log.d("action_refresh", "Attempting to populate database...")
-                menuExists = menuManager.populateDatabaseFromWebsite(Date(unixTimeStamp))
-            }
-
-            val hallStatus: Int = menuManager.getOpenDiningHalls(unixTimeStamp)
-            enableDisableDiningHalls(hallStatus)
-
-            runOnUiThread{
-                if(menuExists){
-                    Log.d("action_refresh", "Database populated.")
-                    reloadFragments(supportFragmentManager.fragments)
-                    toast("Loaded!")
-                }
-                else{
-                    Log.d("action_refresh", "Something went wrong.")
-                    longToast("Something went wrong!")
-                }
-                refreshLayout.isRefreshing = false
-
-                isRefreshing = false
-            }
-        }
     }
 
-    /**
-     * Enables or disables [SwipeRefreshLayout]
-     */
-    private fun enableDisableSwipeRefresh(enable: Boolean) {
-        if(isRefreshing) return
+    override fun makeTabBrunch() {
+        val color: Int = ContextCompat.getColor(this, R.color.colorAccent)
 
-        val swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.refresh_layout)
-        if(swipeRefreshLayout != null) {
-            swipeRefreshLayout.isEnabled = enable
-        }
+        val breakfastTab: TextView? = tabLayout.getTabAt(0)?.view?.getChildAt(1) as TextView?
+        breakfastTab?.setTextColor(color)
+
+        val lunchTab: TextView? = tabLayout.getTabAt(1)?.view?.getChildAt(1) as TextView?
+        lunchTab?.setTextColor(color)
     }
 
-    private fun enableDisableDiningHalls(hallStatus: Int) {
-        when(hallStatus){
-            111 -> return
-            110 -> {
-                nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
-            }
-            100 -> {
-                nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
-                nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
-            }
-            0 -> {
-                nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
-                nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
-                nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
-            }
-        }
-    }
-
-    private fun disableTab(tabLayout: TabLayout, index: Int) {
-        (tabLayout.getChildAt(0) as ViewGroup).getChildAt(index).isEnabled = false
-    }
     // todo: Make empty "times" in the day greyed out
-    // todo: Handle brunch. Make Lunch grey w/ no items and Breakfast gold with brunch items
+    companion object {
+        val TAG = MainActivity::class.java.simpleName
 
+    }
 }
