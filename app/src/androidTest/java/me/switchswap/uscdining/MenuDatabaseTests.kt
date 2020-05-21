@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import junit.framework.Assert.*
 import kotlinx.coroutines.runBlocking
-import me.switchswap.uscdining.menu.*
+import me.switchswap.uscdining.data.*
 import models.DiningHallType
 import models.ItemType
 import org.junit.After

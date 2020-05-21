@@ -1,4 +1,4 @@
-package me.switchswap.uscdining.menu
+package me.switchswap.uscdining.data
 
 import android.content.Context
 import androidx.room.Database
@@ -39,6 +39,7 @@ abstract class AppDatabase : RoomDatabase() {
                             WorkManager.getInstance(context).enqueue(request)
                         }
                     })
+                    .allowMainThreadQueries() // Todo: Disallow Main Thread Queries eventually
                     .build()
         }
     }

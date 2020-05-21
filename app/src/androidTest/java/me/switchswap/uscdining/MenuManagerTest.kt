@@ -8,7 +8,7 @@ import junit.framework.Assert
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.runBlocking
-import me.switchswap.uscdining.menu.*
+import me.switchswap.uscdining.data.*
 import models.DiningHallType
 import models.DiningMenu
 import models.ItemType

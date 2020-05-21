@@ -1,18 +1,17 @@
-package me.switchswap.uscdining.menu
+package me.switchswap.uscdining.data
 
 import Dining
-import android.content.Context
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.withContext
+import android.util.Log
 import models.*
 import models.MenuItem
-import org.jetbrains.anko.longToast
-import me.switchswap.uscdining.menu.MenuItem as DatabaseMenuItem
+import me.switchswap.uscdining.data.MenuItem as DatabaseMenuItem
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 /* Class for loading data from database or internet */
-class MenuManager(private val context: Context, private val menuDao: MenuDao = AppDatabase.getInstance(context).menuDao()) {
+// Todo: Make menuDao non-nullable
+class MenuManager(private val menuDao: MenuDao?) {
 
     /**
      * Get menu from network and update database
@@ -22,22 +21,19 @@ class MenuManager(private val context: Context, private val menuDao: MenuDao = A
         kotlin.runCatching {
             // Grab dining menu from API
             val diningMenu: DiningMenu = dining.getDiningMenu(Date(date))
+            Log.d(TAG, "Retrieved menu for date: ${diningMenu.date}")
+
             // Insert it into database
             insertItems(diningMenu)
-        }.getOrElse {
-            // Todo: Move these comments somewhere reasonable
-            // @throws IOException in the case of a network error
-            // @throws IllegalArgumentException in the case of a parsing error
-            withContext(Main) {
-                context.longToast("Error fetching menu!")
-            }
-        }
+        }.getOrThrow()
     }
 
     /**
      * Inserts items into SQLite database
      */
     private suspend fun insertItems(diningMenu: DiningMenu) {
+        if (menuDao == null) return
+
         // Todo: Update this to allow for more dates in the database at a time
         // Delete all values from tables that will be updated
         menuDao.dropMenuItems()
@@ -47,17 +43,22 @@ class MenuManager(private val context: Context, private val menuDao: MenuDao = A
         insertItems(diningMenu.village, DiningHallType.VILLAGE)
     }
     private suspend fun insertItems(hallMenu: HallMenu, diningHallType: DiningHallType) {
+        if (menuDao == null) return
+
         insertItems(hallMenu.breakfast, diningHallType, hallMenu.date)
         insertItems(hallMenu.brunch, diningHallType, hallMenu.date)
         insertItems(hallMenu.lunch, diningHallType, hallMenu.date)
         insertItems(hallMenu.dinner, diningHallType, hallMenu.date)
     }
     private suspend fun insertItems(menuItems: HashMap<String, MenuItem>, diningHallType: DiningHallType, date: Date) {
+        if (menuDao == null) return
+
         // Insert each menu item
         menuItems.forEach { item ->
             val menuItem = item.value
 
             // Insert item into db
+            // DatabaseMenuItem is the MenuItem entity imported with a different name to avoid conflicts
             val databaseMenuItem = DatabaseMenuItem(0, menuItem.itemName,
                     menuItem.itemType.typeName, menuItem.itemCategory, date.time, diningHallType.id)
 
@@ -75,9 +76,12 @@ class MenuManager(private val context: Context, private val menuDao: MenuDao = A
         }
     }
 
-    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): List<MenuItem> {
-        // Todo: Complete this function
-        return ArrayList()
+    /**
+     * Get list of MenuItems from the database
+     */
+    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): ArrayList<MenuItemAndAllergens> {
+        if(menuDao == null) return ArrayList()
+        return menuDao.getMenuItems(diningHallType, itemType.typeName, date) as ArrayList<MenuItemAndAllergens>
     }
 
     companion object {

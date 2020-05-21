@@ -1,4 +1,4 @@
-package me.switchswap.uscdining.menu
+package me.switchswap.uscdining.data
 
 import androidx.room.*
 import models.DiningHallType
