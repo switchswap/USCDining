@@ -4,13 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
-import junit.framework.Assert
 import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.runBlocking
 import me.switchswap.uscdining.data.*
 import models.DiningHallType
-import models.DiningMenu
 import models.ItemType
 import org.junit.After
 import org.junit.Before
@@ -66,7 +63,7 @@ class MenuManagerTest {
     @Test
     @Throws(Exception::class)
     fun testInsertItemsFromWeb() {
-        val menuManager = MenuManager(context, menuDao)
+        val menuManager = MenuManager(menuDao)
         val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
         val dateString = "05/20/2020"
         val date: Date = simpleDateFormat.parse(dateString)!!
@@ -78,6 +75,28 @@ class MenuManagerTest {
         val menuItems: List<MenuItemAndAllergens> =
                 menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date.time)
 
-        assertEquals(12, menuItems.size)
+        assertEquals(11, menuItems.size)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testUpdateItemsFromWeb() {
+        val menuManager = MenuManager(menuDao)
+        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        val dateString = "05/20/2020"
+        val date: Date = simpleDateFormat.parse(dateString)!!
+
+        // Assert that every time MenuManager retrieves the menu from the internet, it clears the
+        // old data before inserting the new data
+        for (i in 0 until 2) {
+            runBlocking {
+                menuManager.getMenuFromWeb(date.time)
+            }
+
+            val menuItems: List<MenuItemAndAllergens> =
+                    menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date.time)
+
+            assertEquals(11, menuItems.size)
+        }
     }
 }
