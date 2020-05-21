@@ -27,9 +27,6 @@ class MenuDatabaseTests {
 
     private val diningHall = DiningHall(1, "TestHall")
     private val menuItemA = MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, 1)
-    private val menuItemB = MenuItem(0, "Bread", ItemType.LUNCH.typeName, "Temp", 1L, 1)
-    private val menuItemC = MenuItem(0, "Cheese", ItemType.DINNER.typeName, "Temp", 1L, 1)
-
 
     @Before
     fun createDb() {
