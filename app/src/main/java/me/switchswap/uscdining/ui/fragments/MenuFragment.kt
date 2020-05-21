@@ -18,10 +18,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import me.switchswap.uscdining.R
-import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.data.MenuItemAndAllergens
 import me.switchswap.uscdining.data.MenuManager
+import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
+import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
 import models.DiningHallType
 import models.ItemType
@@ -31,6 +32,8 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     private var recyclerViewMenuItems : RecyclerView? = null
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
+
+    private var mListener: FragmentInteractionListener? = null
 
     private val menu: ArrayList<MenuItemAndAllergens> = ArrayList()
 
@@ -47,6 +50,20 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     }
 
     private lateinit var menuManager: MenuManager
+
+    override fun onAttach(context: Context) {
+        mListener = if (context is FragmentInteractionListener) {
+            context
+        } else {
+            throw RuntimeException("$context must implement FragmentInteractionListener")
+        }
+        super.onAttach(context)
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        mListener = null
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view: View? = inflater.inflate(R.layout.fragment_menu, container, false)
@@ -174,11 +191,27 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     }
 
     private fun getMenu(): ArrayList<MenuItemAndAllergens> {
-        return menuManager.getMenuFromDatabase(
+        var tempMenu = menuManager.getMenuFromDatabase(
                 diningHallType = menuPayload.diningHallType,
                 itemType = menuPayload.itemType,
                 date = dateUtil.readDate()
         )
+
+        if (tempMenu.isEmpty()) {
+            tempMenu = menuManager.getMenuFromDatabase(
+                    diningHallType = menuPayload.diningHallType,
+                    itemType = ItemType.BRUNCH,
+                    date = dateUtil.readDate()
+            )
+
+            @Suppress("ControlFlowWithEmptyBody")
+            if (tempMenu.isNotEmpty()) {
+                // mListener?.makeTabBrunch()
+                // Todo: This function is buggy so fix it sometime
+            }
+        }
+
+        return tempMenu
     }
 
     private fun updateMenu() {
@@ -217,7 +250,6 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         }
         super.onDestroy()
     }
-
 
     companion object {
         val TAG = MenuFragment::class.java.simpleName
