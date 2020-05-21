@@ -8,11 +8,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.menu_item.view.*
 import me.switchswap.uscdining.R
+import me.switchswap.uscdining.data.MenuItemAndAllergens
 import me.switchswap.uscdining.models.AllergenType
-import models.MenuItem
-import java.util.HashMap
 
-class MenuAdapter(val menu: List<MenuItem>) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
+class MenuAdapter(val menu: List<MenuItemAndAllergens>) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
     /**
      * Creates view holder to be passed into [MenuViewHolder]
@@ -36,11 +35,12 @@ class MenuAdapter(val menu: List<MenuItem>) : RecyclerView.Adapter<MenuAdapter.M
      */
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
         val menuItem = menu[position]
-        holder.view.menu_item_name.text = menuItem.itemName
+        holder.view.menu_item_name.text = menuItem.menuItem.name
+        holder.view.menu_item_allergens.removeAllViews()
 
         menuItem.allergens.forEach {
             // Get allergen enum
-            val allergenType: AllergenType = AllergenType.fromName(it) ?: AllergenType.UNAVAILABLE
+            val allergenType: AllergenType = AllergenType.fromName(it.name) ?: AllergenType.UNAVAILABLE
 
             val layoutInflater: LayoutInflater = holder.view.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val textView = layoutInflater.inflate(R.layout.allergen_item, null) as TextView
