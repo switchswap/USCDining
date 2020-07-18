@@ -149,16 +149,18 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
                     withContext(Main) {
                         configureDiningHalls()
                         mListener?.setRefreshing(false)
-
-                        // Toggle sharedpreference to invoke the onChangedListener
-                        sharedPreferences?.edit()?.apply {
-                            putBoolean(getString(R.string.pref_refreshing), !(sharedPreferences?.getBoolean(getString(R.string.pref_refreshing), false) ?: false))
-                            apply()
-                        }
                     }
                 }
             }
             else {
+                // If we got this far, remove the refresh indicator if it's there
+
+                // This means that the refresh indicator will persist as long as the fragment has not
+                // been touched since the refresh. The spinner will keep spinning and only go away
+                // after this tab is resumed.
+                // Todo: Think about a better way to handle this. Preferably with a listener!
+                swipeRefreshLayout?.isRefreshing = false
+
                 // Update list
                 updateMenu()
                 configureDiningHalls()
@@ -202,16 +204,6 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         when(key) {
             getString(R.string.pref_menu_date) -> {
                 reloadMenu(!requireContext().db().menuDao().dateHasMenu(dateUtil.readDate()))
-            }
-            getString(R.string.pref_refreshing) -> {
-                // If refresh status changed then reset refresh status icon
-                // Refresh pref is just being used as a trigger here
-                if (mListener?.getRefreshing() == false) {
-                    swipeRefreshLayout?.isRefreshing = false
-
-                    // Update menu since refresh is complete
-                    updateMenu()
-                }
             }
         }
     }
