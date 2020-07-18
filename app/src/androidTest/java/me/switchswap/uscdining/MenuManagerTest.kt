@@ -26,8 +26,9 @@ import kotlin.collections.ArrayList
 @RunWith(AndroidJUnit4ClassRunner::class)
 class MenuManagerTest {
     private lateinit var db: AppDatabase
-    private lateinit var menuDao: MenuDao
     private lateinit var context: Context
+    private lateinit var menuDao: MenuDao
+    private lateinit var menuManager: MenuManager
 
     @Before
     fun createDb() {
@@ -35,6 +36,7 @@ class MenuManagerTest {
         db = Room.inMemoryDatabaseBuilder(
                 context, AppDatabase::class.java).build()
         menuDao = db.menuDao()
+        menuManager = MenuManager(menuDao)
 
         runBlocking {
             val diningHalls = ArrayList<DiningHall>()
@@ -63,17 +65,14 @@ class MenuManagerTest {
     @Test
     @Throws(Exception::class)
     fun testInsertItemsFromWeb() {
-        val menuManager = MenuManager(menuDao)
-        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-        val dateString = "05/20/2020"
-        val date: Date = simpleDateFormat.parse(dateString)!!
+        val date: Long = dateStringToLong("05/20/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date.time)
+            menuManager.getMenuFromWeb(date, false)
         }
 
         val menuItems: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date.time)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date)
 
         assertEquals(11, menuItems.size)
     }
@@ -81,20 +80,18 @@ class MenuManagerTest {
     @Test
     @Throws(Exception::class)
     fun testUpdateItemsFromWeb() {
-        val menuManager = MenuManager(menuDao)
-        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-        val dateString = "05/20/2020"
-        val date: Date = simpleDateFormat.parse(dateString)!!
+        val date: Long = dateStringToLong("05/20/2020")
 
         // Assert that every time MenuManager retrieves the menu from the internet, it clears the
-        // old data before inserting the new data
+        // old data from the given date before inserting the new data
         for (i in 0 until 2) {
             runBlocking {
-                menuManager.getMenuFromWeb(date.time)
+                // Even with data caching enabled, the existing data for the date should be deleted
+                menuManager.getMenuFromWeb(date, true)
             }
 
             val menuItems: List<MenuItemAndAllergens> =
-                    menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date.time)
+                    menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date)
 
             assertEquals(11, menuItems.size)
         }
@@ -103,30 +100,67 @@ class MenuManagerTest {
     @Test
     @Throws(Exception::class)
     fun testDateHasBrunchTrue() {
-        val menuManager = MenuManager(menuDao)
-        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-        val dateString = "02/22/2020"
-        val date: Date = simpleDateFormat.parse(dateString)!!
+        val date: Long = dateStringToLong("02/22/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date.time)
+            menuManager.getMenuFromWeb(date, false)
         }
 
-        assertTrue(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date.time))
+        assertTrue(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date))
     }
 
     @Test
     @Throws(Exception::class)
     fun testDateHasBrunchFalse() {
-        val menuManager = MenuManager(menuDao)
-        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-        val dateString = "02/21/2020"
-        val date: Date = simpleDateFormat.parse(dateString)!!
+        val date: Long = dateStringToLong("02/21/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date.time)
+            menuManager.getMenuFromWeb(date, false)
         }
 
-        assertFalse(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date.time))
+        assertFalse(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date))
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDataCachingOn() {
+        val day1: Long = dateStringToLong("05/20/2020")
+        val day2: Long = dateStringToLong("05/21/2020")
+        runBlocking {
+            menuManager.getMenuFromWeb(day1, true)
+            menuManager.getMenuFromWeb(day2, true)
+        }
+
+        val day1Items: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day1)
+        assertEquals(11, day1Items.size)
+
+        val day2Items: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day2)
+        assertEquals(11, day2Items.size)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDataCachingOff() {
+        val day1: Long = dateStringToLong("05/20/2020")
+        val day2: Long = dateStringToLong("05/21/2020")
+        runBlocking {
+            menuManager.getMenuFromWeb(day1, false)
+            menuManager.getMenuFromWeb(day2, false)
+        }
+
+        val day1Items: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day1)
+        assertEquals(0, day1Items.size)
+
+        val day2Items: List<MenuItemAndAllergens> =
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day2)
+        assertEquals(11, day2Items.size)
+    }
+
+    private fun dateStringToLong(dateString: String): Long {
+        val simpleDateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        return simpleDateFormat.parse(dateString)!!.time
     }
 }
