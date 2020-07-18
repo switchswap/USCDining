@@ -28,6 +28,7 @@ import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
 import models.DiningHallType
+import org.jetbrains.anko.longToast
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -95,10 +96,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     // Update shared preference
                     val unixTimeStamp = DateUtil.convertDate(date)
                     dateUtil.writeDate(unixTimeStamp)
-
-                    // Reconfigure dinning halls upon date change
-                    // Todo: This may not be necessary since it happens in [MenuFragment]
-                    configureDiningHalls()
                 }
             }
         }
@@ -213,6 +210,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
             nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
             nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
+            applicationContext.longToast("No dining halls open!")
         }
         else {
             nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled =  menuDao.hallHasMenu(DiningHallType.PARKSIDE.id, date)
