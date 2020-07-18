@@ -83,5 +83,13 @@ class DateUtil(private val activity: FragmentActivity?) {
             val day = calendar.get(Calendar.DAY_OF_MONTH)
             return convertDate("${month + 1}/$day/$year")
         }
+
+        fun getTimeStamp(unixTimeStamp: Long): String? {
+            if (unixTimeStamp != 0L) {
+                val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
+                return dateFormat.format(Date(unixTimeStamp))
+            }
+            return null
+        }
     }
 }
