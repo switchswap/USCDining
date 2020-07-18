@@ -16,7 +16,7 @@ class MenuManager(private val menuDao: MenuDao?) {
     /**
      * Get menu from network and update database
      */
-    suspend fun getMenuFromWeb(date: Long) {
+    suspend fun getMenuFromWeb(date: Long, cacheData: Boolean) {
         val dining = Dining()
         kotlin.runCatching {
             // Grab dining menu from API
@@ -24,19 +24,23 @@ class MenuManager(private val menuDao: MenuDao?) {
             Log.d(TAG, "Retrieved menu for date: ${diningMenu.date}")
 
             // Insert it into database
-            insertItems(diningMenu)
+            insertItems(diningMenu, cacheData)
         }.getOrThrow()
     }
 
     /**
      * Inserts items into SQLite database
      */
-    private suspend fun insertItems(diningMenu: DiningMenu) {
+    private suspend fun insertItems(diningMenu: DiningMenu, cacheData: Boolean) {
         if (menuDao == null) return
 
-        // Todo: Update this to allow for more dates in the database at a time
         // Delete all values from tables that will be updated
-        menuDao.dropMenuItems()
+        if (cacheData) {
+            menuDao.dropMenuItems(diningMenu.date.time)
+        }
+        else {
+            menuDao.dropAllMenuItems()
+        }
 
         insertItems(diningMenu.parkside, DiningHallType.PARKSIDE)
         insertItems(diningMenu.evk, DiningHallType.EVK)

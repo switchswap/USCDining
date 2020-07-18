@@ -55,5 +55,8 @@ interface MenuDao {
      * By the schema, the corresponding allergens will also be deleted
      */
     @Query("DELETE FROM MenuItems")
-    suspend fun dropMenuItems()
+    suspend fun dropAllMenuItems()
+
+    @Query("DELETE FROM MenuItems WHERE date = :date")
+    suspend fun dropMenuItems(date: Long)
 }

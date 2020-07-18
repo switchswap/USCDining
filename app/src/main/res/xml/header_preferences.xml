@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
 app:iconSpaceReserved="false">
 
 <PreferenceCategory
@@ -13,6 +14,18 @@ app:iconSpaceReserved="false">
         app:summary="@string/summary_default_hall"
         app:entries="@array/hall_entries"
         app:entryValues="@array/hall_values"/>
+    <CheckBoxPreference
+        app:iconSpaceReserved="false"
+        android:defaultValue="false"
+        android:key="@string/pref_cache_disabled"
+        android:title="@string/title_disable_cache"
+        android:summary="@string/summary_disable_cache"/>
+
+    <me.switchswap.uscdining.ui.dialog.SimpleDialogPreference
+        app:iconSpaceReserved="false"
+        android:key="@string/pref_clear_cache"
+        android:title="@string/title_clear_cache"
+        android:summary="@string/summary_clear_cache" />
 </PreferenceCategory>
 
 <PreferenceCategory
@@ -20,17 +33,20 @@ app:iconSpaceReserved="false">
     app:title="@string/header_about">
 
     <Preference
+        app:key="@string/pref_version"
         app:iconSpaceReserved="false"
         app:title="@string/title_version"
         app:summary="@string/summary_version"/>
     <Preference
-        app:iconSpaceReserved="false"
-        app:title="@string/title_github"
-        app:summary="@string/summary_github"/>
-    <Preference
-        app:fragment="me.switchswap.uscdining.ui.activities.SettingsActivity$MessagesFragment"
+        app:fragment="me.switchswap.uscdining.ui.activities.SettingsActivity$CreditsFragment"
         app:iconSpaceReserved="false"
         app:title="@string/title_licences"
         app:summary="@string/summary_licenses"/>
+    <me.switchswap.uscdining.ui.dialog.SimpleDialogPreference
+        app:iconSpaceReserved="false"
+        android:key="@string/pref_donate"
+        android:title="@string/title_donate"
+        android:summary="@string/summary_donate"
+        android:dialogMessage="@string/dialog_message_donate"/>
 </PreferenceCategory>
 </PreferenceScreen>

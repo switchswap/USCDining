@@ -6,33 +6,41 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
 
-    <!--activity main drawer-->
+    <!-- Activity Main Drawer-->
     <string name="parkside_dining_hall">Parkside Restaurant &amp; Grill</string>
     <string name="evk_dining_hall">Everybody\'s Kitchen</string>
     <string name="village_dining_hall">USC Village Dining Hall</string>
     <string name="action_settings">Settings</string>
 
-    <!--toolbar menu-->
+    <!-- Toolbar Menu -->
     <string name="action_refresh">Refresh</string>
 
-    <!--tab bar-->
+    <!-- Tab Bar -->
     <string name="tab_breakfast">BREAKFAST</string>
     <string name="tab_lunch">LUNCH</string>
     <string name="tab_dinner">DINNER</string>
     <string name="tab_brunch">BRUNCH</string>
 
-    <!-- main activity -->
+    <!-- Main Activity -->
     <string name="date_string_default">[Insert date]</string>
     <string name="date_string">%1$d/%2$d/%3$d</string>
 
-    <!-- layout menu item -->
-    <string name="menu_item_default_text">Bacon</string>
-    <string name="menu_item_allergens_default_text">Pork</string>
+    <!-- Settings Activity -->
+    <string name="title_activity_settings">Settings</string>
 
-    <!-- shared prefs -->
+    <!-- Layout Menu Item -->
+    <string name="item_name_default_text">Bacon</string>
+    <string name="item_allergens_default_text">Allergen information unavailable</string>
+
+    <!-- Shared Prefs -->
     <string name="pref_menu_date">menuDate</string>
     <string name="pref_refreshing">refreshing</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="pref_version">version</string>
+    <string name="pref_cache_disabled">cache_disabled</string>
+    <string name="pref_clear_cache">clear_cache</string>
+    <string name="pref_default_hall">default_hall</string>
+    <string name="pref_donate">donate</string>
+
 
     <!-- Preference Titles -->
     <string name="header_settings">Settings</string>
@@ -41,15 +49,18 @@
     <!-- Settings Preferences -->
     <string name="title_default_hall">Default dining hall</string>
     <string name="summary_default_hall">Dining hall that will be shown by default</string>
+    <string name="title_disable_cache">Disable data caching</string>
+    <string name="summary_disable_cache">Don\'t store multiple menus on device. This may increase network data usage!</string>
+    <string name="title_clear_cache">Clear data cache</string>
+    <string name="summary_clear_cache">Delete all stored menu data on device</string>
 
     <!-- About Preferences -->
     <string name="title_version">Version</string>
     <string name="summary_version">0.0.0</string>
-    <string name="title_github">Github</string>
+    <string name="title_github">USCDining</string>
     <string name="summary_github">https://github.com/switchswap/USCDining</string>
     <string name="title_licences">Credits</string>
     <string name="summary_licenses">Additional software used in this application</string>
-    <string name="pref_default_hall">default_hall</string>
 
     <!-- Credits Titles -->
     <string name="title_usc_menu_kt">USC-Menu-kt</string>
@@ -61,4 +72,7 @@
     <!-- Placeholder Strings -->
     <string name="title_placeholder">Sync email periodically</string>
     <string name="summary_placeholder">Download incoming attachments</string>
+    <string name="title_donate">Donate</string>
+    <string name="summary_donate">Consider donating to support development :)</string>
+    <string name="dialog_message_donate">"Donations are always appreciated!\n\nVenmo: @SwitchSwap"</string>
 </resources>

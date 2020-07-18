@@ -1,10 +1,23 @@
 package me.switchswap.uscdining.ui.activities
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.switchswap.uscdining.BuildConfig
 import me.switchswap.uscdining.R
+import me.switchswap.uscdining.extensions.db
+import me.switchswap.uscdining.ui.dialog.SimpleDialogPreference
+import me.switchswap.uscdining.ui.dialog.SimpleDialogPreferenceCompat
+import me.switchswap.uscdining.util.DateUtil
+import org.jetbrains.anko.longToast
 
 private const val TITLE_TAG = "settingsActivityTitle"
 
@@ -69,14 +82,69 @@ class SettingsActivity : AppCompatActivity(),
     }
 
     class HeaderFragment : PreferenceFragmentCompat() {
+        var presses: Int = 0
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.header_preferences, rootKey)
+
+            // Set version number
+            val version = findPreference<Preference>(getString(R.string.pref_version))
+            version?.apply {
+                summary = BuildConfig.VERSION_NAME
+
+                // Build time easter egg
+                onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                    if (presses == 5) {
+                        context.longToast("Build time: ${DateUtil.getTimeStamp(BuildConfig.TIMESTAMP)}")
+                    } else {
+                        presses++
+                    }
+                    true
+                }
+            }
+
+            val clearCache: SimpleDialogPreference = findPreference<Preference>(getString(R.string.pref_clear_cache)) as SimpleDialogPreference
+            clearCache.apply {
+                positiveResult = {
+                    CoroutineScope(IO).launch {
+                        context.db().menuDao().dropAllMenuItems()
+
+                        withContext(Main){
+                            context.longToast("Cleared!")
+                        }
+                    }
+                }
+            }
+
+            val donate: SimpleDialogPreference = findPreference<Preference>(getString(R.string.pref_donate)) as SimpleDialogPreference
+            donate.apply {
+                positiveResult = {}
+                negativeButtonText = ""
+            }
+        }
+
+        override fun onDisplayPreferenceDialog(preference: Preference?) {
+            val simpleDialogPreference = preference as? SimpleDialogPreference
+
+            // If preference is a [SimpleDialogPreference], show the appropriate dialog
+            if (simpleDialogPreference != null) {
+                val dialogFragment = SimpleDialogPreferenceCompat.newInstance(simpleDialogPreference.key)
+                dialogFragment.setTargetFragment(this, 0)
+                dialogFragment.show(parentFragmentManager, null)
+            } else {
+                super.onDisplayPreferenceDialog(preference)
+            }
         }
     }
 
-    class MessagesFragment : PreferenceFragmentCompat() {
+    class CreditsFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.credits_preferences, rootKey)
         }
+    }
+
+
+    companion object {
+        val TAG = SettingsActivity::class.java.simpleName
     }
 }
