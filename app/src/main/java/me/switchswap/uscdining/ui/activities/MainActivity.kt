@@ -2,6 +2,7 @@ package me.switchswap.uscdining.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.navigation.NavigationView
 import androidx.core.view.GravityCompat
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentStatePagerAdapter
@@ -20,11 +22,14 @@ import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import me.switchswap.uscdining.R
+import me.switchswap.uscdining.data.MenuDao
+import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
 import models.DiningHallType
 import java.util.*
+import kotlin.collections.HashMap
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, FragmentInteractionListener {
 
@@ -40,6 +45,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         DateUtil(this)
     }
 
+    private var isRefreshing: Boolean = false
+
+    private var currentDiningHall: Int = -1
+
+    private lateinit var menuDao: MenuDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -49,10 +60,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
         // Set navigation drawer listener
         nav_view.setNavigationItemSelectedListener(this)
         viewPager.offscreenPageLimit = 2
+
+        // Set menuDao
+        menuDao = applicationContext.db().menuDao()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -84,6 +97,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     dateUtil.writeDate(unixTimeStamp)
 
                     // Reconfigure dinning halls upon date change
+                    // Todo: This may not be necessary since it happens in [MenuFragment]
                     configureDiningHalls()
                 }
             }
@@ -94,8 +108,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             startActivity(settingsIntent)
         }
 
+//        nav_view.menu.findItem(R.id.nav_evk)?.setOnMenuItemClickListener(onMenuItemClickListener())
+//        nav_view.menu.findItem(R.id.nav_parkside)?.setOnMenuItemClickListener(onMenuItemClickListener())
+//        nav_view.menu.findItem(R.id.nav_village)?.setOnMenuItemClickListener(onMenuItemClickListener())
+
         // Populate database from website if needed
         configureDiningHalls()
+    }
+
+    private fun onMenuItemClickListener() = MenuItem.OnMenuItemClickListener {
+        if (!it.isEnabled) {
+            Toast.makeText(applicationContext, "Dining hall closed!", Toast.LENGTH_SHORT).show()
+        }
+        true
     }
 
     override fun onBackPressed() {
@@ -109,25 +134,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu
         // This adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
+        // menuInflater.inflate(R.menu.main, menu)
         return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when(item.itemId) {
-            R.id.action_refresh -> {
-                //reloadMenu(1548971445000)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
+        Log.d(TAG, item.isEnabled.toString())
         changeViewPager(item.itemId)
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
@@ -140,7 +153,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         // Todo: Think about inlining this variable even though I don't like it
-        // Todo: Make values not hard-coded
+        // Todo: Make values not hard-coded (for changeViewPager() too)
         val defaultHall: String = sharedPreferences.getString(getString(R.string.pref_default_hall), "") ?: ""
         when (defaultHall) {
             "evk" -> changeViewPager(R.id.nav_evk)
@@ -173,7 +186,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             else -> null
         }
-
+        currentDiningHall = selectedItem
         fragmentPagerAdapter?.also { adapter ->
             viewPager.adapter = adapter
             tabLayout.setupWithViewPager(viewPager)
@@ -189,13 +202,33 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     /**
-     * Updates the navigation view depending on the presence of certain items
-     *
-     * @param unixTimeStamp is the date for which to retrieve the menu
+     * Updates the navigation view depending on which dining halls are open
      */
-    // Todo: Function may or may not be needed
-    private fun configureDiningHalls(unixTimeStamp: Long? = dateUtil.readDate()) {
-        if(unixTimeStamp == null) return
+    // Todo: May not be important but the calls to `findItem` can possibly be reduced
+    override fun configureDiningHalls() {
+        val date = dateUtil.readDate()
+
+        // If no halls are open, grey all of them as usual and also disable the tabs
+        if (!menuDao.dateHasMenu(date)) {
+            nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
+            nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
+            nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
+        }
+        else {
+            nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled =  menuDao.hallHasMenu(DiningHallType.PARKSIDE.id, date)
+            nav_view.menu.findItem(R.id.nav_village)?.isEnabled = menuDao.hallHasMenu(DiningHallType.VILLAGE.id, date)
+            nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = menuDao.hallHasMenu(DiningHallType.EVK.id, date)
+
+            // If current hall is closed, move to first open hall
+            if (nav_view.menu.findItem(currentDiningHall)?.isEnabled == false) {
+                for (id in listOf(R.id.nav_parkside, R.id.nav_village, R.id.nav_evk)) {
+                    if (nav_view.menu.findItem(id)?.isEnabled == true) {
+                        changeViewPager(id)
+                        return
+                    }
+                }
+            }
+        }
     }
 
     override fun makeTabBrunch() {
@@ -208,9 +241,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lunchTab?.setTextColor(color)
     }
 
-    // todo: Make empty "times" in the day greyed out
+    override fun getRefreshing(): Boolean {
+        return isRefreshing
+    }
+
+    override fun setRefreshing(status: Boolean) {
+        isRefreshing = status
+    }
+
     companion object {
         val TAG = MainActivity::class.java.simpleName
-
     }
 }
