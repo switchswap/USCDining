@@ -40,7 +40,6 @@ class MenuDatabaseTests {
         }
     }
 
-
     @After
     @Throws(IOException::class)
     fun closeDb() {
@@ -51,7 +50,7 @@ class MenuDatabaseTests {
     @Throws(Exception::class)
     fun testDbCreationTrue() {
         val diningHalls: List<DiningHall> = menuDao.getDiningHalls()
-        var found: Boolean = false
+        var found = false
         for (diningHall: DiningHall in diningHalls) {
             if (diningHall.id == 1) {
                 found = true
@@ -65,7 +64,7 @@ class MenuDatabaseTests {
     @Throws(Exception::class)
     fun testDbCreationFalse() {
         val diningHalls: List<DiningHall> = menuDao.getDiningHalls()
-        var found: Boolean = false
+        var found = false
         for (diningHall: DiningHall in diningHalls) {
             if (diningHall.id == 5) {
                 found = true
@@ -113,13 +112,9 @@ class MenuDatabaseTests {
         assertEquals(3, menuItemAndAllergens[0].allergens.size)
     }
 
-    companion object {
-        val TAG = MenuDatabaseTests::class.java.simpleName
-    }
-
     @Test
     @Throws(Exception::class)
-    fun testMenuItemDrop() {
+    fun testMenuItemDropAll() {
         runBlocking {
             // Insert a MenuItem
             val menuItemId: Int = menuDao.insertMenuItem(menuItemA).toInt()
@@ -135,7 +130,7 @@ class MenuDatabaseTests {
         assertEquals(1, menuItemAndAllergens[0].allergens.size)
 
         runBlocking {
-            menuDao.dropMenuItems()
+            menuDao.dropAllMenuItems()
         }
 
         // Verify that the item was dropped
@@ -148,7 +143,7 @@ class MenuDatabaseTests {
     fun testDiningHallTypeConverter() {
         runBlocking {
             menuDao.insertDiningHalls(listOf(DiningHall(DiningHallType.EVK.id, DiningHallType.EVK.name)))
-            menuDao.insertMenuItem( MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, DiningHallType.EVK.id))
+            menuDao.insertMenuItem(MenuItem(0, "Soup", ItemType.BREAKFAST.typeName, "Temp", 1L, DiningHallType.EVK.id))
         }
 
         // Verify that the item was dropped
