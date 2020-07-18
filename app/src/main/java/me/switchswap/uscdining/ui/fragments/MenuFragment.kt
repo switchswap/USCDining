@@ -28,7 +28,7 @@ import models.DiningHallType
 import models.ItemType
 import org.jetbrains.anko.longToast
 
-class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener {
+class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope by MainScope() {
     private var recyclerViewMenuItems : RecyclerView? = null
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
@@ -65,6 +65,11 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         mListener = null
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        retainInstance = true
+        resetRefresh()
+        super.onCreate(savedInstanceState)
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view: View? = inflater.inflate(R.layout.fragment_menu, container, false)
         recyclerViewMenuItems = view?.findViewById(R.id.recycler_view_menu_items)
@@ -85,7 +90,7 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        menuManager = MenuManager(context.db()?.menuDao())
+        menuManager = MenuManager(requireContext().db().menuDao())
         recyclerViewMenuItems?.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = MenuAdapter(menu)
@@ -107,7 +112,9 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     override fun onResume() {
         super.onResume()
         dateUtil.subscribe(this)
-        reloadMenu(false)
+
+        // If the menu doesn't exist in cache, force reload to grab data from web
+        reloadMenu(!requireContext().db().menuDao().dateHasMenu(dateUtil.readDate()))
     }
 
     /**
@@ -127,44 +134,60 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
-        if (getRefreshing()) {
+        if (mListener?.getRefreshing() == true) {
             swipeRefreshLayout?.isRefreshing = true
-            return
         }
         else {
             if (fullReload) {
                 // Get menu from web
                 // UI should be updated from the shared preference listener
-                setRefreshing(true)
+                mListener?.setRefreshing(true)
                 swipeRefreshLayout?.isRefreshing = true
 
-                CoroutineScope(IO).launch {
-                    longTask()
-                    // If user changes dining hall while this coroutine is running, it causes
-                    // crashes so check if context exists first
-                    // Todo: Learn why this happens and fix this temp patch
-                    if(context != null) setRefreshing(false)
-                }.invokeOnCompletion { throwable ->
-                    if (throwable != null) {
-                        Log.e(TAG, throwable.message + "")
+                launch(IO) {
+                    fetchMenu()
+                    withContext(Main) {
+                        configureDiningHalls()
+                        mListener?.setRefreshing(false)
+
+                        // Toggle sharedpreference to invoke the onChangedListener
+                        sharedPreferences?.edit()?.apply {
+                            putBoolean(getString(R.string.pref_refreshing), !(sharedPreferences?.getBoolean(getString(R.string.pref_refreshing), false) ?: false))
+                            apply()
+                        }
                     }
                 }
             }
             else {
                 // Update list
                 updateMenu()
+                configureDiningHalls()
             }
         }
     }
 
-    private suspend fun longTask() {
+    private fun configureDiningHalls() {
+        // Signal the main activity to update the nav drawer accordingly
+        if(mListener != null){
+            mListener?.configureDiningHalls()
+            Log.d(TAG, "Dining hall nav configured")
+        }
+        else{
+            Log.d(TAG, "Dining hall nav not configured")
+        }
+    }
+
+    private suspend fun fetchMenu() {
+        Log.d(TAG, "Fetching menu from web!")
         val date = dateUtil.readDate()
         kotlin.runCatching {
-            menuManager.getMenuFromWeb(date)
+            val cacheEnabled: Boolean = sharedPreferences?.getBoolean(getString(R.string.pref_cache_disabled), true) ?: true
+            menuManager.getMenuFromWeb(date, cacheEnabled)
+            Log.d(TAG, "Menu fetched!")
         }.getOrElse {
             withContext(Main) {
                 activity?.longToast("Something went wrong!")
-                Log.e(TAG, "" + it.message)
+                Log.e(TAG, "Error fetching menu: " + it.message)
             }
         }
     }
@@ -177,10 +200,13 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         if(context == null) return
         when(key) {
-            getString(R.string.pref_menu_date) -> reloadMenu(true)
+            getString(R.string.pref_menu_date) -> {
+                reloadMenu(!requireContext().db().menuDao().dateHasMenu(dateUtil.readDate()))
+            }
             getString(R.string.pref_refreshing) -> {
-                // If refresh status changed to false, then reset refresh status icon
-                if (!getRefreshing()) {
+                // If refresh status changed then reset refresh status icon
+                // Refresh pref is just being used as a trigger here
+                if (mListener?.getRefreshing() == false) {
                     swipeRefreshLayout?.isRefreshing = false
 
                     // Update menu since refresh is complete
@@ -223,32 +249,23 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
             val tempMenu: ArrayList<MenuItemAndAllergens> = getMenu()
             Log.d(TAG, "${menuPayload.itemType} Got ${tempMenu.size} items from database")
             menu.addAll(tempMenu)
-
-            Log.d(TAG, "${menuPayload.itemType} Menu now displays ${menu.size} items")
         }
 
         // Notify adapter of change
         recyclerViewMenuItems?.adapter?.notifyDataSetChanged()
     }
 
-    private fun setRefreshing(status: Boolean) {
-        sharedPreferences?.edit()?.apply {
-            putBoolean(getString(R.string.pref_refreshing), status)
-            apply()
-        }
-    }
-
-    private fun getRefreshing(): Boolean {
-        return sharedPreferences?.getBoolean(getString(R.string.pref_refreshing), false) ?: false
-    }
-
     override fun onDestroy() {
         Log.d(TAG, "${menuPayload.diningHallType} ${menuPayload.itemType} Destroyed")
-        if (getRefreshing()) {
-            CoroutineScope(IO).cancel()
-            setRefreshing(false)
-        }
+        resetRefresh()
         super.onDestroy()
+    }
+
+    private fun resetRefresh() {
+        if (mListener?.getRefreshing() == true) {
+            cancel()
+            mListener?.setRefreshing(false)
+        }
     }
 
     companion object {
