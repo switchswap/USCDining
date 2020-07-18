@@ -4,5 +4,5 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="3dp"
-    android:text="@string/menu_item_allergens_default_text"
+    android:text="@string/item_allergens_default_text"
     android:textSize="12sp" />
