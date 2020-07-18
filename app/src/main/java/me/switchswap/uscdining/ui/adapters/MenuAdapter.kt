@@ -35,20 +35,25 @@ class MenuAdapter(val menu: List<MenuItemAndAllergens>) : RecyclerView.Adapter<M
      */
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
         val menuItem = menu[position]
-        holder.view.menu_item_name.text = menuItem.menuItem.name
-        holder.view.menu_item_allergens.removeAllViews()
+        holder.view.label_item_name.text = menuItem.menuItem.name
 
+        // Todo: If this isn't here, the Cereal allergens on 5/21/20 change when tab switching. Fix that to skip this call.
+        holder.view.label_item_allergens.text = "" // Clear the TextView
+
+        val allergenString: StringBuilder = StringBuilder()
         menuItem.allergens.forEach {
             // Get allergen enum
             val allergenType: AllergenType = AllergenType.fromName(it.name) ?: AllergenType.UNAVAILABLE
-
-            val layoutInflater: LayoutInflater = holder.view.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            val textView = layoutInflater.inflate(R.layout.allergen_item, null) as TextView
-            textView.apply {
-                text = allergenType.allergenName
+            if (allergenType != AllergenType.UNAVAILABLE) {
+                allergenString.append(allergenType.allergenName).append(" ")
             }
+        }
 
-            holder.view.menu_item_allergens.addView(textView)
+        if (allergenString.trim().isNotEmpty()) {
+            holder.view.label_item_allergens.text = allergenString.toString().dropLast(1) // Drop last space in string
+        }
+        else {
+            holder.view.label_item_allergens.text = holder.view.resources.getString(R.string.item_allergens_default_text)
         }
     }
 
