@@ -25,10 +25,11 @@ import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuDao
 import me.switchswap.uscdining.extensions.db
+import me.switchswap.uscdining.extensions.longToast
+import me.switchswap.uscdining.extensions.toast
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
-import org.jetbrains.anko.longToast
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, IFragmentInteractionListener {
@@ -110,7 +111,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun onMenuItemClickListener() = MenuItem.OnMenuItemClickListener {
         if (!it.isEnabled) {
-            Toast.makeText(applicationContext, "Dining hall closed!", Toast.LENGTH_SHORT).show()
+            applicationContext.toast("Dining hall closed!")
         }
         true
     }

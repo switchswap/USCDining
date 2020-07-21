@@ -1,8 +1,6 @@
 package me.switchswap.uscdining.ui.activities
 
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -14,10 +12,10 @@ import kotlinx.coroutines.withContext
 import me.switchswap.uscdining.BuildConfig
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.extensions.db
+import me.switchswap.uscdining.extensions.longToast
 import me.switchswap.uscdining.ui.dialog.SimpleDialogPreference
 import me.switchswap.uscdining.ui.dialog.SimpleDialogPreferenceCompat
 import me.switchswap.uscdining.util.DateUtil
-import org.jetbrains.anko.longToast
 
 private const val TITLE_TAG = "settingsActivityTitle"
 
