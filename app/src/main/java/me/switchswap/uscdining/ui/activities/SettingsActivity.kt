@@ -80,7 +80,7 @@ class SettingsActivity : AppCompatActivity(),
     }
 
     class HeaderFragment : PreferenceFragmentCompat() {
-        var presses: Int = 0
+        private var presses: Int = 0
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.header_preferences, rootKey)

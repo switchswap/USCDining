@@ -33,9 +33,7 @@ class MenuRepository(private val menuDao: MenuDao) {
                             menuItem.itemType.name, menuItem.itemCategory, diningMenu.date.time, hall.value.hallType.id)
 
                     // Get id of inserted menu item
-                    Log.d(TAG, "Inserting Menu item")
                     val menuItemId: Int = menuDao.insertMenuItem(databaseMenuItem).toInt()
-                    Log.d(TAG, "Menu item inserted! ID is $menuItemId")
 
                     // Build list of allergens
                     val allergens: ArrayList<Allergen> = ArrayList()
@@ -43,10 +41,8 @@ class MenuRepository(private val menuDao: MenuDao) {
                         allergens.add(Allergen(0, allergen, menuItemId))
                     }
 
-                    Log.d(TAG, "Inserting allergens of ID $menuItemId")
                     // Insert allergens into db
                     menuDao.insertAllergens(allergens)
-                    Log.d(TAG, "Inserted allergens of ID $menuItemId")
                 }
             }
         }

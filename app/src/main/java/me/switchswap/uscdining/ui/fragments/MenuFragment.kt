@@ -144,10 +144,6 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         // Signal the main activity to update the nav drawer accordingly
         if(interactionListener != null){
             interactionListener?.configureDiningHalls(dateUtil.readDate())
-            Log.d(TAG, "Dining hall nav configured")
-        }
-        else{
-            Log.d(TAG, "Dining hall nav not configured")
         }
     }
 
@@ -160,7 +156,11 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         if(context == null) return
         when(key) {
             getString(R.string.pref_menu_date) -> {
+                // Since this will trigger on every fragment, only have the breakfast fragment
+                // run the reload. Since all the fragments share a viewmodel, refreshing should
+                // work fine.
                 reloadMenu(!requireContext().db().menuDao().dateHasMenu(dateUtil.readDate()))
+
             }
         }
     }
