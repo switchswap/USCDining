@@ -1,6 +1,6 @@
 package me.switchswap.uscdining.ui.interfaces
 
-interface FragmentInteractionListener {
+interface IFragmentInteractionListener {
     /**
      * Update Tab color to indicate brunch
      */
@@ -9,7 +9,7 @@ interface FragmentInteractionListener {
     /**
      * Updates the navigation view depending on which dining halls are open
      */
-    fun configureDiningHalls()
+    fun configureDiningHalls(date: Long)
 
     /**
      * Ge refreshing status

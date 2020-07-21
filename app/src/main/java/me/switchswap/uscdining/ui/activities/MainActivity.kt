@@ -25,15 +25,13 @@ import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuDao
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
-import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
+import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
 import models.DiningHallType
 import org.jetbrains.anko.longToast
 import java.util.*
-import kotlin.collections.HashMap
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, FragmentInteractionListener {
-
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, IFragmentInteractionListener {
     private val viewPager by lazy(LazyThreadSafetyMode.NONE) {
         findViewById<ViewPager>(R.id.viewpager)
     }
@@ -108,9 +106,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 //        nav_view.menu.findItem(R.id.nav_evk)?.setOnMenuItemClickListener(onMenuItemClickListener())
 //        nav_view.menu.findItem(R.id.nav_parkside)?.setOnMenuItemClickListener(onMenuItemClickListener())
 //        nav_view.menu.findItem(R.id.nav_village)?.setOnMenuItemClickListener(onMenuItemClickListener())
-
-        // Populate database from website if needed
-        configureDiningHalls()
     }
 
     private fun onMenuItemClickListener() = MenuItem.OnMenuItemClickListener {
@@ -149,10 +144,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun setupViewPager() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
-        // Todo: Think about inlining this variable even though I don't like it
         // Todo: Make values not hard-coded (for changeViewPager() too)
-        val defaultHall: String = sharedPreferences.getString(getString(R.string.pref_default_hall), "") ?: ""
-        when (defaultHall) {
+        when (sharedPreferences.getString(getString(R.string.pref_default_hall), "") ?: "") {
             "evk" -> changeViewPager(R.id.nav_evk)
             "parkside" -> changeViewPager(R.id.nav_parkside)
             "village" -> changeViewPager(R.id.nav_village)
@@ -202,9 +195,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
      * Updates the navigation view depending on which dining halls are open
      */
     // Todo: May not be important but the calls to `findItem` can possibly be reduced
-    override fun configureDiningHalls() {
-        val date = dateUtil.readDate()
-
+    override fun configureDiningHalls(date: Long) {
         // If no halls are open, grey all of them as usual and also disable the tabs
         if (!menuDao.dateHasMenu(date)) {
             nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
