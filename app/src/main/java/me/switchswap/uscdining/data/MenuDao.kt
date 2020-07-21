@@ -1,5 +1,6 @@
 package me.switchswap.uscdining.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import models.DiningHallType
 import models.ItemType
@@ -29,14 +30,8 @@ interface MenuDao {
      * and date
      */
     @Transaction
-    @Query("SELECT * FROM MenuItems WHERE hall_id = :hallId AND type = :type AND date = :date")
-    fun getMenuItems(hallId: Int, type: String, date: Long): List<MenuItemAndAllergens>
-    @Transaction
-    @Query("SELECT * FROM MenuItems WHERE hall_id = :diningHallType AND type = :type AND date = :date")
-    fun getMenuItems(diningHallType: DiningHallType, type: String, date: Long): List<MenuItemAndAllergens>
-    @Transaction
     @Query("SELECT * FROM MenuItems WHERE hall_id = :diningHallType AND type = :itemType AND date = :date")
-    fun getMenuItems(diningHallType: DiningHallType, itemType: ItemType, date: Long): List<MenuItemAndAllergens>
+    fun getMenuItems(diningHallType: DiningHallType, itemType: ItemType, date: Long): LiveData<List<MenuItemAndAllergens>>
 
     @Insert
     suspend fun insertMenuItem(menuItem: MenuItem): Long

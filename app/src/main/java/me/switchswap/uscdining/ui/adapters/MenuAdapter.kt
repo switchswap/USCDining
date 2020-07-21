@@ -5,13 +5,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.menu_item.view.*
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuItemAndAllergens
 import me.switchswap.uscdining.models.AllergenType
 
-class MenuAdapter(val menu: List<MenuItemAndAllergens>) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
+class MenuAdapter() : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
+    private val diff = AsyncListDiffer<MenuItemAndAllergens>(this, object : DiffUtil.ItemCallback<MenuItemAndAllergens>() {
+        override fun areItemsTheSame(oldItem: MenuItemAndAllergens, newItem: MenuItemAndAllergens): Boolean {
+            return oldItem.menuItem.id == newItem.menuItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: MenuItemAndAllergens, newItem: MenuItemAndAllergens): Boolean {
+            return oldItem.menuItem.id == newItem.menuItem.id
+        }
+    })
 
     /**
      * Creates view holder to be passed into [MenuViewHolder]
@@ -27,14 +38,14 @@ class MenuAdapter(val menu: List<MenuItemAndAllergens>) : RecyclerView.Adapter<M
      * Returns size of our list
      */
     override fun getItemCount(): Int {
-        return menu.size
+        return diff.currentList.size
     }
 
     /**
      * Binds the actual data with the ViewHolder
      */
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
-        val menuItem = menu[position]
+        val menuItem = diff.currentList[position]
         holder.view.label_item_name.text = menuItem.menuItem.name
 
         // Todo: If this isn't here, the Cereal allergens on 5/21/20 change when tab switching. Fix that to skip this call.
@@ -55,6 +66,10 @@ class MenuAdapter(val menu: List<MenuItemAndAllergens>) : RecyclerView.Adapter<M
         else {
             holder.view.label_item_allergens.text = holder.view.resources.getString(R.string.item_allergens_default_text)
         }
+    }
+
+    fun setMenu(menu: List<MenuItemAndAllergens>) {
+        diff.submitList(menu)
     }
 
     /**

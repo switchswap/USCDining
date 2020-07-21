@@ -2,6 +2,7 @@ package me.switchswap.uscdining.data
 
 import Dining
 import android.util.Log
+import androidx.lifecycle.LiveData
 import models.*
 import models.MenuItem
 import me.switchswap.uscdining.data.MenuItem as DatabaseMenuItem
@@ -10,30 +11,11 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 /* Class for loading data from database or internet */
-// Todo: Make menuDao non-nullable
-class MenuManager(private val menuDao: MenuDao?) {
-
-    /**
-     * Get menu from network and update database
-     */
-    suspend fun getMenuFromWeb(date: Long, cacheData: Boolean) {
-        val dining = Dining()
-        kotlin.runCatching {
-            // Grab dining menu from API
-            val diningMenu: DiningMenu = dining.getDiningMenu(Date(date))
-            Log.d(TAG, "Retrieved menu for date: ${diningMenu.date}")
-
-            // Insert it into database
-            insertItems(diningMenu, cacheData)
-        }.getOrThrow()
-    }
-
+class MenuRepository(private val menuDao: MenuDao) {
     /**
      * Inserts items into SQLite database
      */
     private suspend fun insertItems(diningMenu: DiningMenu, cacheData: Boolean) {
-        if (menuDao == null) return
-
         // Delete all values from tables that will be updated
         if (cacheData) {
             menuDao.dropMenuItems(diningMenu.date.time)
@@ -48,8 +30,6 @@ class MenuManager(private val menuDao: MenuDao?) {
     }
 
     private suspend fun insertItems(hallMenu: HallMenu, diningHallType: DiningHallType) {
-        if (menuDao == null) return
-
         insertItems(hallMenu.breakfast, diningHallType, hallMenu.date)
         insertItems(hallMenu.brunch, diningHallType, hallMenu.date)
         insertItems(hallMenu.lunch, diningHallType, hallMenu.date)
@@ -57,8 +37,6 @@ class MenuManager(private val menuDao: MenuDao?) {
     }
 
     private suspend fun insertItems(menuItems: HashMap<String, MenuItem>, diningHallType: DiningHallType, date: Date) {
-        if (menuDao == null) return
-
         // Insert each menu item
         menuItems.forEach { item ->
             val menuItem = item.value
@@ -85,13 +63,31 @@ class MenuManager(private val menuDao: MenuDao?) {
     /**
      * Get list of MenuItems from the database
      */
-    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): ArrayList<MenuItemAndAllergens> {
-        if(menuDao == null) return ArrayList()
-        return menuDao.getMenuItems(diningHallType, itemType.typeName, date) as ArrayList<MenuItemAndAllergens>
+    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): LiveData<List<MenuItemAndAllergens>> {
+        return menuDao.getMenuItems(diningHallType, itemType, date)
     }
 
+    /**
+     * Get menu from network and update database
+     */
+    suspend fun getMenuFromWeb(date: Long, cacheData: Boolean) {
+        val dining = Dining()
+        Log.d(TAG, "Fetching menu from web!")
+        kotlin.runCatching {
+            // Grab dining menu from API
+            val diningMenu: DiningMenu = dining.getDiningMenu(Date(date))
+            Log.d(TAG, "Retrieved menu for date: ${diningMenu.date}")
+
+            // Insert it into database
+            insertItems(diningMenu, cacheData)
+        }.onFailure {
+            Log.e(TAG, "Error fetching menu from web!", it)
+        }
+    }
+
+
     companion object {
-        val TAG = MenuManager::class.java.simpleName
+        val TAG = MenuRepository::class.java.simpleName
     }
 }
 

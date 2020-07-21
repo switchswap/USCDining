@@ -9,33 +9,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.parcel.Parcelize
-import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import me.switchswap.uscdining.R
-import me.switchswap.uscdining.data.MenuItemAndAllergens
-import me.switchswap.uscdining.data.MenuManager
+import me.switchswap.uscdining.data.MenuFragmentViewModel
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
-import me.switchswap.uscdining.ui.interfaces.FragmentInteractionListener
+import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
 import models.DiningHallType
 import models.ItemType
-import org.jetbrains.anko.longToast
 
-class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope by MainScope() {
+class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener {
+    private val viewModel: MenuFragmentViewModel by activityViewModels()
+
     private var recyclerViewMenuItems : RecyclerView? = null
 
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
-    private var mListener: FragmentInteractionListener? = null
-
-    private val menu: ArrayList<MenuItemAndAllergens> = ArrayList()
+    private var interactionListener: IFragmentInteractionListener? = null
 
     private val dateUtil by lazy {
         DateUtil(activity)
@@ -49,10 +46,8 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         arguments?.getParcelable<Payload>(PARAM_DINNING_PAYLOAD)!!
     }
 
-    private lateinit var menuManager: MenuManager
-
     override fun onAttach(context: Context) {
-        mListener = if (context is FragmentInteractionListener) {
+        interactionListener = if (context is IFragmentInteractionListener) {
             context
         } else {
             throw RuntimeException("$context must implement FragmentInteractionListener")
@@ -62,13 +57,13 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
 
     override fun onDetach() {
         super.onDetach()
-        mListener = null
+        interactionListener = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        retainInstance = true
-        resetRefresh()
         super.onCreate(savedInstanceState)
+        retainInstance = true
+        viewModel.setManager(requireContext().db().menuDao())
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view: View? = inflater.inflate(R.layout.fragment_menu, container, false)
@@ -90,10 +85,9 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        menuManager = MenuManager(requireContext().db().menuDao())
         recyclerViewMenuItems?.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = MenuAdapter(menu)
+            adapter = MenuAdapter()
             addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         }
         swipeRefreshLayout?.apply {
@@ -134,63 +128,26 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
-        if (mListener?.getRefreshing() == true) {
-            swipeRefreshLayout?.isRefreshing = true
-        }
-        else {
-            if (fullReload) {
-                // Get menu from web
-                // UI should be updated from the shared preference listener
-                mListener?.setRefreshing(true)
-                swipeRefreshLayout?.isRefreshing = true
+        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
+            swipeRefreshLayout?.isRefreshing = it
+        })
 
-                launch(IO) {
-                    fetchMenu()
-                    withContext(Main) {
-                        configureDiningHalls()
-                        mListener?.setRefreshing(false)
-                    }
-                }
-            }
-            else {
-                // If we got this far, remove the refresh indicator if it's there
-
-                // This means that the refresh indicator will persist as long as the fragment has not
-                // been touched since the refresh. The spinner will keep spinning and only go away
-                // after this tab is resumed.
-                // Todo: Think about a better way to handle this. Preferably with a listener!
-                swipeRefreshLayout?.isRefreshing = false
-
-                // Update list
-                updateMenu()
-                configureDiningHalls()
-            }
-        }
+        viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload)
+                .observe(viewLifecycleOwner, Observer {
+                    val adapter = recyclerViewMenuItems?.adapter
+                    (adapter as MenuAdapter).setMenu(it)
+                    configureDiningHalls()
+                })
     }
 
     private fun configureDiningHalls() {
         // Signal the main activity to update the nav drawer accordingly
-        if(mListener != null){
-            mListener?.configureDiningHalls()
+        if(interactionListener != null){
+            interactionListener?.configureDiningHalls(dateUtil.readDate())
             Log.d(TAG, "Dining hall nav configured")
         }
         else{
             Log.d(TAG, "Dining hall nav not configured")
-        }
-    }
-
-    private suspend fun fetchMenu() {
-        Log.d(TAG, "Fetching menu from web!")
-        val date = dateUtil.readDate()
-        kotlin.runCatching {
-            val cacheEnabled: Boolean = sharedPreferences?.getBoolean(getString(R.string.pref_cache_disabled), true) ?: true
-            menuManager.getMenuFromWeb(date, cacheEnabled)
-            Log.d(TAG, "Menu fetched!")
-        }.getOrElse {
-            withContext(Main) {
-                activity?.longToast("Something went wrong!")
-                Log.e(TAG, "Error fetching menu: " + it.message)
-            }
         }
     }
 
@@ -208,57 +165,11 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         }
     }
 
-    private fun getMenu(): ArrayList<MenuItemAndAllergens> {
-        var tempMenu = menuManager.getMenuFromDatabase(
-                diningHallType = menuPayload.diningHallType,
-                itemType = menuPayload.itemType,
-                date = dateUtil.readDate()
-        )
-
-        if (tempMenu.isEmpty()) {
-            tempMenu = menuManager.getMenuFromDatabase(
-                    diningHallType = menuPayload.diningHallType,
-                    itemType = ItemType.BRUNCH,
-                    date = dateUtil.readDate()
-            )
-
-            @Suppress("ControlFlowWithEmptyBody")
-            if (tempMenu.isNotEmpty()) {
-                // mListener?.makeTabBrunch()
-                // Todo: This function is buggy so fix it sometime
-            }
-        }
-
-        return tempMenu
-    }
-
-    private fun updateMenu() {
-        // Clear old list
-        menu.clear()
-
-        runBlocking {
-            // Add new list
-            val tempMenu: ArrayList<MenuItemAndAllergens> = getMenu()
-            Log.d(TAG, "${menuPayload.itemType} Got ${tempMenu.size} items from database")
-            menu.addAll(tempMenu)
-        }
-
-        // Notify adapter of change
-        recyclerViewMenuItems?.adapter?.notifyDataSetChanged()
-    }
-
     override fun onDestroy() {
         Log.d(TAG, "${menuPayload.diningHallType} ${menuPayload.itemType} Destroyed")
-        resetRefresh()
         super.onDestroy()
     }
 
-    private fun resetRefresh() {
-        if (mListener?.getRefreshing() == true) {
-            cancel()
-            mListener?.setRefreshing(false)
-        }
-    }
 
     companion object {
         val TAG = MenuFragment::class.java.simpleName
