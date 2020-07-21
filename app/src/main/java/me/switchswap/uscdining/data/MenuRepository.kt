@@ -7,7 +7,6 @@ import me.switchswap.diningmenu.models.*
 import me.switchswap.uscdining.data.MenuItem as DatabaseMenuItem
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /* Class for loading data from database or internet */
 class MenuRepository(private val menuDao: MenuDao) {
@@ -23,39 +22,33 @@ class MenuRepository(private val menuDao: MenuDao) {
             menuDao.dropAllMenuItems()
         }
 
-        insertItems(diningMenu.parkside, DiningHallType.PARKSIDE)
-        insertItems(diningMenu.evk, DiningHallType.EVK)
-        insertItems(diningMenu.village, DiningHallType.VILLAGE)
-    }
+        diningMenu.halls.forEach { hall ->
+            hall.value.menus.forEach { itemType ->
+                itemType.value.forEach { item ->
+                    val menuItem = item.value
 
-    private suspend fun insertItems(hallMenu: HallMenu, diningHallType: DiningHallType) {
-        insertItems(hallMenu.breakfast, diningHallType, hallMenu.date)
-        insertItems(hallMenu.brunch, diningHallType, hallMenu.date)
-        insertItems(hallMenu.lunch, diningHallType, hallMenu.date)
-        insertItems(hallMenu.dinner, diningHallType, hallMenu.date)
-    }
+                    // Insert item into db
+                    // DatabaseMenuItem is the MenuItem entity imported with a different name to avoid conflicts
+                    val databaseMenuItem = DatabaseMenuItem(0, menuItem.itemName,
+                            menuItem.itemType.name, menuItem.itemCategory, diningMenu.date.time, hall.value.hallType.id)
 
-    private suspend fun insertItems(menuItems: HashMap<String, MenuItem>, diningHallType: DiningHallType, date: Date) {
-        // Insert each menu item
-        menuItems.forEach { item ->
-            val menuItem = item.value
+                    // Get id of inserted menu item
+                    Log.d(TAG, "Inserting Menu item")
+                    val menuItemId: Int = menuDao.insertMenuItem(databaseMenuItem).toInt()
+                    Log.d(TAG, "Menu item inserted! ID is $menuItemId")
 
-            // Insert item into db
-            // DatabaseMenuItem is the MenuItem entity imported with a different name to avoid conflicts
-            val databaseMenuItem = DatabaseMenuItem(0, menuItem.itemName,
-                    menuItem.itemType.name, menuItem.itemCategory, date.time, diningHallType.id)
+                    // Build list of allergens
+                    val allergens: ArrayList<Allergen> = ArrayList()
+                    menuItem.allergens.forEach { allergen ->
+                        allergens.add(Allergen(0, allergen, menuItemId))
+                    }
 
-            // Get id of inserted menu item
-            val menuItemId: Int = menuDao.insertMenuItem(databaseMenuItem).toInt()
-
-            // Build list of allergens
-            val allergens: ArrayList<Allergen> = ArrayList()
-            menuItem.allergens.forEach { allergen ->
-                allergens.add(Allergen(0, allergen, menuItemId))
+                    Log.d(TAG, "Inserting allergens of ID $menuItemId")
+                    // Insert allergens into db
+                    menuDao.insertAllergens(allergens)
+                    Log.d(TAG, "Inserted allergens of ID $menuItemId")
+                }
             }
-
-            // Insert allergens into db
-            menuDao.insertAllergens(allergens)
         }
     }
 
