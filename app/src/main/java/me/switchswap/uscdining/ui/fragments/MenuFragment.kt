@@ -97,6 +97,10 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
                 reloadMenu(true)
             }
         }
+
+        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
+            swipeRefreshLayout?.isRefreshing = it
+        })
     }
 
     /**
@@ -128,10 +132,6 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
-        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
-            swipeRefreshLayout?.isRefreshing = it
-        })
-
         viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload)
                 .observe(viewLifecycleOwner, Observer {
                     val adapter = recyclerViewMenuItems?.adapter
