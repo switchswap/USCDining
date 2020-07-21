@@ -24,11 +24,11 @@ import kotlin.collections.ArrayList
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4ClassRunner::class)
-class MenuManagerTest {
+class MenuRepositoryTest {
     private lateinit var db: AppDatabase
     private lateinit var context: Context
     private lateinit var menuDao: MenuDao
-    private lateinit var menuManager: MenuManager
+    private lateinit var menuRepository: MenuRepository
 
     @Before
     fun createDb() {
@@ -36,7 +36,7 @@ class MenuManagerTest {
         db = Room.inMemoryDatabaseBuilder(
                 context, AppDatabase::class.java).build()
         menuDao = db.menuDao()
-        menuManager = MenuManager(menuDao)
+        menuRepository = MenuRepository(menuDao)
 
         runBlocking {
             val diningHalls = ArrayList<DiningHall>()
@@ -68,7 +68,7 @@ class MenuManagerTest {
         val date: Long = dateStringToLong("05/20/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date, false)
+            menuRepository.getMenuFromWeb(date, false)
         }
 
         val menuItems: List<MenuItemAndAllergens> =
@@ -87,7 +87,7 @@ class MenuManagerTest {
         for (i in 0 until 2) {
             runBlocking {
                 // Even with data caching enabled, the existing data for the date should be deleted
-                menuManager.getMenuFromWeb(date, true)
+                menuRepository.getMenuFromWeb(date, true)
             }
 
             val menuItems: List<MenuItemAndAllergens> =
@@ -103,7 +103,7 @@ class MenuManagerTest {
         val date: Long = dateStringToLong("02/22/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date, false)
+            menuRepository.getMenuFromWeb(date, false)
         }
 
         assertTrue(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date))
@@ -115,7 +115,7 @@ class MenuManagerTest {
         val date: Long = dateStringToLong("02/21/2020")
 
         runBlocking {
-            menuManager.getMenuFromWeb(date, false)
+            menuRepository.getMenuFromWeb(date, false)
         }
 
         assertFalse(menuDao.hallHasBrunch(DiningHallType.PARKSIDE, date))
@@ -127,8 +127,8 @@ class MenuManagerTest {
         val day1: Long = dateStringToLong("05/20/2020")
         val day2: Long = dateStringToLong("05/21/2020")
         runBlocking {
-            menuManager.getMenuFromWeb(day1, true)
-            menuManager.getMenuFromWeb(day2, true)
+            menuRepository.getMenuFromWeb(day1, true)
+            menuRepository.getMenuFromWeb(day2, true)
         }
 
         val day1Items: List<MenuItemAndAllergens> =
@@ -146,8 +146,8 @@ class MenuManagerTest {
         val day1: Long = dateStringToLong("05/20/2020")
         val day2: Long = dateStringToLong("05/21/2020")
         runBlocking {
-            menuManager.getMenuFromWeb(day1, false)
-            menuManager.getMenuFromWeb(day2, false)
+            menuRepository.getMenuFromWeb(day1, false)
+            menuRepository.getMenuFromWeb(day2, false)
         }
 
         val day1Items: List<MenuItemAndAllergens> =
