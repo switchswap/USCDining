@@ -5,9 +5,9 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.coroutineScope
+import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.uscdining.data.AppDatabase
 import me.switchswap.uscdining.data.DiningHall
-import models.DiningHallType
 
 class MenuDatabaseInitWorker(
         context: Context,

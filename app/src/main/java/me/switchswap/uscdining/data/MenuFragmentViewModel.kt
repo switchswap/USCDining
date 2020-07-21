@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
-import models.DiningHallType
-import models.ItemType
+import me.switchswap.diningmenu.models.DiningHallType
+import me.switchswap.diningmenu.models.ItemType
 
 class MenuFragmentViewModel: ViewModel() {
     private lateinit var menuRepository: MenuRepository
@@ -29,6 +29,4 @@ class MenuFragmentViewModel: ViewModel() {
     fun setManager(menuDao: MenuDao) {
         menuRepository = MenuRepository(menuDao)
     }
-
-
 }

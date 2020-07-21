@@ -1,10 +1,9 @@
 package me.switchswap.uscdining.data
 
-import Dining
 import android.util.Log
 import androidx.lifecycle.LiveData
-import models.*
-import models.MenuItem
+import me.switchswap.diningmenu.Dining
+import me.switchswap.diningmenu.models.*
 import me.switchswap.uscdining.data.MenuItem as DatabaseMenuItem
 import java.util.*
 import kotlin.collections.ArrayList
@@ -44,7 +43,7 @@ class MenuRepository(private val menuDao: MenuDao) {
             // Insert item into db
             // DatabaseMenuItem is the MenuItem entity imported with a different name to avoid conflicts
             val databaseMenuItem = DatabaseMenuItem(0, menuItem.itemName,
-                    menuItem.itemType.typeName, menuItem.itemCategory, date.time, diningHallType.id)
+                    menuItem.itemType.name, menuItem.itemCategory, date.time, diningHallType.id)
 
             // Get id of inserted menu item
             val menuItemId: Int = menuDao.insertMenuItem(databaseMenuItem).toInt()

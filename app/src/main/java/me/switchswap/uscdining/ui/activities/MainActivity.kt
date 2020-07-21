@@ -21,13 +21,13 @@ import com.afollestad.materialdialogs.datetime.datePicker
 import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuDao
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
-import models.DiningHallType
 import org.jetbrains.anko.longToast
 import java.util.*
 

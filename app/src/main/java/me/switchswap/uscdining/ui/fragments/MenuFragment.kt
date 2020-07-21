@@ -16,14 +16,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.parcel.Parcelize
+import me.switchswap.diningmenu.models.DiningHallType
+import me.switchswap.diningmenu.models.ItemType
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuFragmentViewModel
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
-import models.DiningHallType
-import models.ItemType
 
 class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener {
     private val viewModel: MenuFragmentViewModel by activityViewModels()
@@ -198,4 +198,3 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
             val itemType: ItemType
     ) : Parcelable
 }
-

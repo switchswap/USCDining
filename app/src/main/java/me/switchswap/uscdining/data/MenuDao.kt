@@ -2,8 +2,8 @@ package me.switchswap.uscdining.data
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import models.DiningHallType
-import models.ItemType
+import me.switchswap.diningmenu.models.DiningHallType
+import me.switchswap.diningmenu.models.ItemType
 
 @Dao
 interface MenuDao {
