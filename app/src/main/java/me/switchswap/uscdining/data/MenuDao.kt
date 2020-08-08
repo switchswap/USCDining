@@ -22,7 +22,7 @@ interface MenuDao {
     /**
      * Check if given dining hall on a given day is serving brunch
      */
-    @Query("SELECT EXISTS(SELECT 1 FROM MenuItems where date = :date AND hall_id = :diningHallType AND type = \"brunch\")")
+    @Query("SELECT EXISTS(SELECT 1 FROM MenuItems where date = :date AND hall_id = :diningHallType AND type = \"BRUNCH\")")
     fun hallHasBrunch(diningHallType: DiningHallType, date: Long): Boolean
 
     /**
@@ -31,7 +31,10 @@ interface MenuDao {
      */
     @Transaction
     @Query("SELECT * FROM MenuItems WHERE hall_id = :diningHallType AND type = :itemType AND date = :date")
-    fun getMenuItems(diningHallType: DiningHallType, itemType: ItemType, date: Long): LiveData<List<MenuItemAndAllergens>>
+    fun getMenuItems(diningHallType: DiningHallType, itemType: ItemType, date: Long): List<MenuItemAndAllergens>
+    @Transaction
+    @Query("SELECT * FROM MenuItems WHERE hall_id = :hallId AND type = :itemType AND date = :date")
+    fun getMenuItems(hallId: Int, itemType: ItemType, date: Long): List<MenuItemAndAllergens>
 
     @Insert
     suspend fun insertMenuItem(menuItem: MenuItem): Long

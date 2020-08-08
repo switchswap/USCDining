@@ -6,9 +6,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import junit.framework.Assert.*
 import kotlinx.coroutines.runBlocking
+import me.switchswap.diningmenu.models.DiningHallType
+import me.switchswap.diningmenu.models.ItemType
 import me.switchswap.uscdining.data.*
-import models.DiningHallType
-import models.ItemType
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -72,7 +72,7 @@ class MenuRepositoryTest {
         }
 
         val menuItems: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, date)
 
         assertEquals(11, menuItems.size)
     }
@@ -91,7 +91,7 @@ class MenuRepositoryTest {
             }
 
             val menuItems: List<MenuItemAndAllergens> =
-                    menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, date)
+                    menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, date)
 
             assertEquals(11, menuItems.size)
         }
@@ -132,11 +132,11 @@ class MenuRepositoryTest {
         }
 
         val day1Items: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day1)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, day1)
         assertEquals(11, day1Items.size)
 
         val day2Items: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day2)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, day2)
         assertEquals(11, day2Items.size)
     }
 
@@ -151,11 +151,11 @@ class MenuRepositoryTest {
         }
 
         val day1Items: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day1)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, day1)
         assertEquals(0, day1Items.size)
 
         val day2Items: List<MenuItemAndAllergens> =
-                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST.typeName, day2)
+                menuDao.getMenuItems(DiningHallType.VILLAGE, ItemType.BREAKFAST, day2)
         assertEquals(11, day2Items.size)
     }
 
