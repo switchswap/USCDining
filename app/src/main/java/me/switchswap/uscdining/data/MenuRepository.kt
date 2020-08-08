@@ -24,6 +24,9 @@ class MenuRepository(private val menuDao: MenuDao) {
 
         diningMenu.halls.forEach { hall ->
             hall.value.menus.forEach { itemType ->
+                if (itemType.key == ItemType.BRUNCH.name) {
+                    Log.d(TAG, itemType.key)
+                }
                 itemType.value.forEach { item ->
                     val menuItem = item.value
 
@@ -51,8 +54,12 @@ class MenuRepository(private val menuDao: MenuDao) {
     /**
      * Get list of MenuItems from the database
      */
-    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): LiveData<List<MenuItemAndAllergens>> {
+    fun getMenuFromDatabase(diningHallType: DiningHallType, itemType: ItemType, date: Long): List<MenuItemAndAllergens> {
         return menuDao.getMenuItems(diningHallType, itemType, date)
+    }
+
+    fun hallHasBrunch(diningHallType: DiningHallType, date: Long): Boolean {
+        return menuDao.hallHasBrunch(diningHallType, date)
     }
 
     /**
