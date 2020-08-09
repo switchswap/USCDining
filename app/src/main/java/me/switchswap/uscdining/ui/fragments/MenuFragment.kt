@@ -132,7 +132,8 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
-        viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload)
+        val cacheEnabled: Boolean = sharedPreferences?.getBoolean(getString(R.string.pref_cache_disabled), true) ?: true
+        viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload, cacheEnabled)
                 .observe(viewLifecycleOwner, Observer {
                     val adapter = recyclerViewMenuItems?.adapter
                     (adapter as MenuAdapter).setMenu(it)

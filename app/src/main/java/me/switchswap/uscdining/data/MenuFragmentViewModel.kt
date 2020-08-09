@@ -18,12 +18,11 @@ class MenuFragmentViewModel: ViewModel() {
     private var lunchData = MediatorLiveData<List<MenuItemAndAllergens>>()
     private val dinnerData = MutableLiveData<List<MenuItemAndAllergens>>()
 
-    fun getMenuData(diningHallType: DiningHallType, itemType: ItemType, date: Long, forceRefresh: Boolean): LiveData<List<MenuItemAndAllergens>> {
+    fun getMenuData(diningHallType: DiningHallType, itemType: ItemType, date: Long, forceRefresh: Boolean, cacheData: Boolean): LiveData<List<MenuItemAndAllergens>> {
         if (forceRefresh && !isLoading.get()) {
             viewModelScope.launch(IO) {
                 isLoading.set(true)
                 loadingState.postValue(true)
-                // Todo: Make caching variable again!
                 menuRepository.getMenuFromWeb(date, true)
                 loadingState.postValue(false)
                 isLoading.set(false)
