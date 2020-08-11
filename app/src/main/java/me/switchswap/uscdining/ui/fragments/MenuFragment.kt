@@ -19,7 +19,7 @@ import kotlinx.android.parcel.Parcelize
 import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.diningmenu.models.ItemType
 import me.switchswap.uscdining.R
-import me.switchswap.uscdining.data.MenuFragmentViewModel
+import me.switchswap.uscdining.ui.viewmodels.MenuFragmentViewModel
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
@@ -100,6 +100,12 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
 
         viewModel.loadingState.observe(viewLifecycleOwner, Observer {
             swipeRefreshLayout?.isRefreshing = it
+            if (it == true) {
+                // Disable nav view
+                if(interactionListener != null){
+                    interactionListener?.disableNavDrawer()
+                }
+            }
         })
     }
 

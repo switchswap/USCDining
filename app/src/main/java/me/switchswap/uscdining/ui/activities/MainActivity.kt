@@ -199,10 +199,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun configureDiningHalls(date: Long) {
         // If no halls are open, grey all of them as usual and also disable the tabs
         if (!menuDao.dateHasMenu(date)) {
-            nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
-            nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
-            nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
-            applicationContext.longToast("No dining halls open!")
+            disableNavDrawer()
         }
         else {
             nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled =  menuDao.hallHasMenu(DiningHallType.PARKSIDE.id, date)
@@ -238,6 +235,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun setRefreshing(status: Boolean) {
         isRefreshing = status
+    }
+
+    override fun disableNavDrawer() {
+        nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = false
+        nav_view.menu.findItem(R.id.nav_parkside)?.isEnabled = false
+        nav_view.menu.findItem(R.id.nav_village)?.isEnabled = false
     }
 
     companion object {

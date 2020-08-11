@@ -24,7 +24,7 @@ interface IFragmentInteractionListener {
     fun setRefreshing(status: Boolean)
 
     /**
-     * Check if empty dining hall
+     * Disable navigation drawer
      */
-    // fun isEmptyHall(): Boolean
+    fun disableNavDrawer()
 }
