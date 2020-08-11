@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.parcel.Parcelize
+import kotlinx.android.synthetic.main.fragment_menu.*
 import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.diningmenu.models.ItemType
 import me.switchswap.uscdining.R
@@ -145,6 +146,13 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
                     (adapter as MenuAdapter).setMenu(it)
                     configureDiningHalls()
                     configureBrunch()
+
+                    if (it.isEmpty()) {
+                        textView_no_items_available.visibility = View.VISIBLE
+                    }
+                    else{
+                        textView_no_items_available.visibility = View.GONE
+                    }
                 })
         configureBrunch()
     }

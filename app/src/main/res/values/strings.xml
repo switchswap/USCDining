@@ -25,6 +25,9 @@
     <string name="date_string_default">[Insert date]</string>
     <string name="date_string">%1$d/%2$d/%3$d</string>
 
+    <!-- Menu Fragment -->
+    <string name="label_no_items_available">No items available.\nRefresh to check again.</string>
+
     <!-- Settings Activity -->
     <string name="title_activity_settings">Settings</string>
 
@@ -75,4 +78,5 @@
     <string name="title_donate">Donate</string>
     <string name="summary_donate">Consider donating to support development :)</string>
     <string name="dialog_message_donate">"Donations are always appreciated!\n\nVenmo: @SwitchSwap"</string>
+
 </resources>
