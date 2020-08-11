@@ -30,6 +30,7 @@ import me.switchswap.uscdining.extensions.toast
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
+import java.time.Month
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, IFragmentInteractionListener {
@@ -87,8 +88,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     time = Date(dateUtil.readDate())
                 }
 
-                // Todo: Set maxDate parameter to one week past current date
-                datePicker(currentDate = currentDate) { _, date ->
+                // Set max date to 12 days past the current date in accordance with the website
+                val maxDate = (currentDate.clone() as Calendar).apply {
+                    add(Calendar.DAY_OF_MONTH, 12)
+                }
+
+                datePicker(currentDate = currentDate, maxDate = maxDate) { _, date ->
                     // Use date (Calendar)
                     setActionBarDate(date)
 
