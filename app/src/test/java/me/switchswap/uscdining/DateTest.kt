@@ -2,8 +2,8 @@ package me.switchswap.uscdining
 
 
 import me.switchswap.uscdining.util.DateUtil
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.Assert.*
 
 class DateTest {
 

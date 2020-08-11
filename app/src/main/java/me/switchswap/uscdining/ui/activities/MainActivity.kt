@@ -3,21 +3,19 @@ package me.switchswap.uscdining.ui.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import com.google.android.material.navigation.NavigationView
-import androidx.core.view.GravityCompat
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.IdRes
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.preference.PreferenceManager
 import androidx.viewpager.widget.ViewPager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.datetime.datePicker
+import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
@@ -25,12 +23,10 @@ import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuDao
 import me.switchswap.uscdining.extensions.db
-import me.switchswap.uscdining.extensions.longToast
 import me.switchswap.uscdining.extensions.toast
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
 import me.switchswap.uscdining.util.DateUtil
-import java.time.Month
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, IFragmentInteractionListener {

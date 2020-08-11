@@ -48,7 +48,7 @@ class MenuAdapter() : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
         val menuItem = diff.currentList[position]
         holder.view.label_item_name.text = menuItem.menuItem.name
 
-        // Todo: If this isn't here, the Cereal allergens on 5/21/20 change when tab switching. Fix that to skip this call.
+        // Todo: If this isn't here, the Cereal allergens on 5/21/20 change when tab switching
         holder.view.label_item_allergens.text = "" // Clear the TextView
 
         val allergenString: StringBuilder = StringBuilder()

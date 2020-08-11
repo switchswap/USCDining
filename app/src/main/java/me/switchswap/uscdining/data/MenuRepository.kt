@@ -1,7 +1,6 @@
 package me.switchswap.uscdining.data
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import me.switchswap.diningmenu.Dining
 import me.switchswap.diningmenu.models.*
 import me.switchswap.uscdining.data.MenuItem as DatabaseMenuItem
