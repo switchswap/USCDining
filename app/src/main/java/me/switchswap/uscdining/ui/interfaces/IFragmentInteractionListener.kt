@@ -1,10 +1,12 @@
 package me.switchswap.uscdining.ui.interfaces
 
+import me.switchswap.diningmenu.models.DiningHallType
+
 interface IFragmentInteractionListener {
     /**
-     * Update Tab color to indicate brunch
+     * Update tab color to indicate brunch if needed
      */
-    fun makeTabBrunch()
+    fun configureBrunch(diningHallType: DiningHallType, date: Long)
 
     /**
      * Updates the navigation view depending on which dining halls are open
