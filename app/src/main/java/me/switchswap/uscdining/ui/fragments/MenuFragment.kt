@@ -138,13 +138,23 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
                     val adapter = recyclerViewMenuItems?.adapter
                     (adapter as MenuAdapter).setMenu(it)
                     configureDiningHalls()
+                    configureBrunch()
                 })
+        configureBrunch()
     }
 
     private fun configureDiningHalls() {
         // Signal the main activity to update the nav drawer accordingly
         if(interactionListener != null){
             interactionListener?.configureDiningHalls(dateUtil.readDate())
+            interactionListener?.configureBrunch(menuPayload.diningHallType, dateUtil.readDate())
+        }
+    }
+
+    private fun configureBrunch() {
+        // Signal the main activity to update the nav drawer accordingly
+        if(interactionListener != null){
+            interactionListener?.configureBrunch(menuPayload.diningHallType, dateUtil.readDate())
         }
     }
 

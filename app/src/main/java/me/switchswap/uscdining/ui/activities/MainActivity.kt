@@ -221,14 +221,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    override fun makeTabBrunch() {
-        val color: Int = ContextCompat.getColor(this, R.color.colorAccent)
-
+    override fun configureBrunch(diningHallType: DiningHallType, date: Long) {
         val breakfastTab: TextView? = tabLayout.getTabAt(0)?.view?.getChildAt(1) as TextView?
-        breakfastTab?.setTextColor(color)
 
-        val lunchTab: TextView? = tabLayout.getTabAt(1)?.view?.getChildAt(1) as TextView?
-        lunchTab?.setTextColor(color)
+        if (menuDao.hallHasBrunch(diningHallType, date)) {
+            breakfastTab?.text = getString(R.string.tab_brunch)
+        }
+        else {
+            breakfastTab?.text = getString(R.string.tab_breakfast)
+        }
     }
 
     override fun getRefreshing(): Boolean {
