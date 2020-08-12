@@ -42,10 +42,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         DateUtil(this)
     }
 
-    private var isRefreshing: Boolean = false
-
-    private var currentDiningHall: Int = -1
-
     private lateinit var menuDao: MenuDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -178,7 +174,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             else -> null
         }
-        currentDiningHall = selectedItem
+        viewModel.currentDiningHall = selectedItem
         fragmentPagerAdapter?.also { adapter ->
             viewPager.adapter = adapter
             tabLayout.setupWithViewPager(viewPager)
@@ -208,7 +204,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             nav_view.menu.findItem(R.id.nav_evk)?.isEnabled = menuDao.hallHasMenu(DiningHallType.EVK.id, date)
 
             // If current hall is closed, move to first open hall
-            if (nav_view.menu.findItem(currentDiningHall)?.isEnabled == false) {
+            if (nav_view.menu.findItem(viewModel.currentDiningHall)?.isEnabled == false) {
                 for (id in listOf(R.id.nav_parkside, R.id.nav_village, R.id.nav_evk)) {
                     if (nav_view.menu.findItem(id)?.isEnabled == true) {
                         changeViewPager(id)
@@ -231,11 +227,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun getRefreshing(): Boolean {
-        return isRefreshing
+        return viewModel.getRefreshing()
     }
 
     override fun setRefreshing(status: Boolean) {
-        isRefreshing = status
+        viewModel.setRefreshing(status)
     }
 
     override fun disableNavDrawer() {
