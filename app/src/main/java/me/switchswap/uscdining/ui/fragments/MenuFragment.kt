@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -16,14 +17,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_menu.*
 import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.diningmenu.models.ItemType
 import me.switchswap.uscdining.R
-import me.switchswap.uscdining.ui.viewmodels.MenuFragmentViewModel
 import me.switchswap.uscdining.extensions.db
 import me.switchswap.uscdining.ui.adapters.MenuAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
+import me.switchswap.uscdining.ui.viewmodels.MenuFragmentViewModel
 import me.switchswap.uscdining.util.DateUtil
 
 class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -34,6 +34,10 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
     private var interactionListener: IFragmentInteractionListener? = null
+
+    private val textView by lazy(LazyThreadSafetyMode.NONE) {
+        view?.findViewById<TextView>(R.id.textView_no_items_available)
+    }
 
     private val dateUtil by lazy {
         DateUtil(activity)
@@ -139,19 +143,20 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
+        val x = viewLifecycleOwner
         val cacheEnabled: Boolean = sharedPreferences?.getBoolean(getString(R.string.pref_cache_disabled), true) ?: true
         viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload, cacheEnabled)
-                .observe(viewLifecycleOwner, Observer {
+                .observe(x, Observer {
                     val adapter = recyclerViewMenuItems?.adapter
                     (adapter as MenuAdapter).setMenu(it)
                     configureDiningHalls()
                     configureBrunch()
 
                     if (it.isEmpty()) {
-                        textView_no_items_available.visibility = View.VISIBLE
+                        textView?.visibility = View.VISIBLE
                     }
                     else{
-                        textView_no_items_available.visibility = View.GONE
+                        textView?.visibility = View.GONE
                     }
                 })
         configureBrunch()
@@ -181,11 +186,7 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
         if(context == null) return
         when(key) {
             getString(R.string.pref_menu_date) -> {
-                // Since this will trigger on every fragment, only have the breakfast fragment
-                // run the reload. Since all the fragments share a viewmodel, refreshing should
-                // work fine.
                 reloadMenu(!requireContext().db().menuDao().dateHasMenu(dateUtil.readDate()))
-
             }
         }
     }
