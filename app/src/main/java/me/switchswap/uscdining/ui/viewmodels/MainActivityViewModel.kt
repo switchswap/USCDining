@@ -1,8 +1,8 @@
 package me.switchswap.uscdining.ui.viewmodels
 
-import me.switchswap.diningmenu.models.DiningHallType
+import androidx.lifecycle.ViewModel
 
-class MainActivityViewModel {
+class MainActivityViewModel: ViewModel() {
     var currentDiningHall: Int = -1
 
     private var isRefreshing: Boolean = false

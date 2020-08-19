@@ -2,10 +2,10 @@ package me.switchswap.uscdining.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -23,13 +23,15 @@ import me.switchswap.diningmenu.models.DiningHallType
 import me.switchswap.uscdining.R
 import me.switchswap.uscdining.data.MenuDao
 import me.switchswap.uscdining.extensions.db
-import me.switchswap.uscdining.extensions.toast
 import me.switchswap.uscdining.ui.adapters.MenuPagerAdapter
 import me.switchswap.uscdining.ui.interfaces.IFragmentInteractionListener
+import me.switchswap.uscdining.ui.viewmodels.MainActivityViewModel
 import me.switchswap.uscdining.util.DateUtil
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, IFragmentInteractionListener {
+    private val viewModel: MainActivityViewModel by viewModels()
+
     private val viewPager by lazy(LazyThreadSafetyMode.NONE) {
         findViewById<ViewPager>(R.id.viewpager)
     }
@@ -53,6 +55,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
+
         // Set navigation drawer listener
         nav_view.setNavigationItemSelectedListener(this)
         viewPager.offscreenPageLimit = 2
@@ -100,17 +103,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val settingsIntent = Intent(applicationContext, SettingsActivity::class.java)
             startActivity(settingsIntent)
         }
-
-//        nav_view.menu.findItem(R.id.nav_evk)?.setOnMenuItemClickListener(onMenuItemClickListener())
-//        nav_view.menu.findItem(R.id.nav_parkside)?.setOnMenuItemClickListener(onMenuItemClickListener())
-//        nav_view.menu.findItem(R.id.nav_village)?.setOnMenuItemClickListener(onMenuItemClickListener())
-    }
-
-    private fun onMenuItemClickListener() = MenuItem.OnMenuItemClickListener {
-        if (!it.isEnabled) {
-            applicationContext.toast("Dining hall closed!")
-        }
-        true
     }
 
     override fun onBackPressed() {
@@ -130,7 +122,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
-        Log.d(TAG, item.isEnabled.toString())
         changeViewPager(item.itemId)
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
