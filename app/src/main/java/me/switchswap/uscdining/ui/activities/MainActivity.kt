@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
 
                 // Set max date to 12 days past the current date in accordance with the website
-                val maxDate = (currentDate.clone() as Calendar).apply {
+                val maxDate = Calendar.getInstance().apply {
                     add(Calendar.DAY_OF_MONTH, 12)
                 }
 
