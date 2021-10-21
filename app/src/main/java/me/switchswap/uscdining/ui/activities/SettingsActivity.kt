@@ -114,11 +114,11 @@ class SettingsActivity : AppCompatActivity(),
                 }
             }
 
-            val donate: SimpleDialogPreference = findPreference<Preference>(getString(R.string.pref_donate)) as SimpleDialogPreference
-            donate.apply {
-                positiveResult = {}
-                negativeButtonText = ""
-            }
+//            val donate: SimpleDialogPreference = findPreference<Preference>(getString(R.string.pref_donate)) as SimpleDialogPreference
+//            donate.apply {
+//                positiveResult = {}
+//                negativeButtonText = ""
+//            }
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference?) {

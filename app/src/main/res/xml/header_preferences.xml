@@ -42,11 +42,11 @@ app:iconSpaceReserved="false">
         app:iconSpaceReserved="false"
         app:title="@string/title_licences"
         app:summary="@string/summary_licenses"/>
-    <me.switchswap.uscdining.ui.dialog.SimpleDialogPreference
-        app:iconSpaceReserved="false"
-        android:key="@string/pref_donate"
-        android:title="@string/title_donate"
-        android:summary="@string/summary_donate"
-        android:dialogMessage="@string/dialog_message_donate"/>
+<!--    <me.switchswap.uscdining.ui.dialog.SimpleDialogPreference-->
+<!--        app:iconSpaceReserved="false"-->
+<!--        android:key="@string/pref_donate"-->
+<!--        android:title="@string/title_donate"-->
+<!--        android:summary="@string/summary_donate"-->
+<!--        android:dialogMessage="@string/dialog_message_donate"/>-->
 </PreferenceCategory>
 </PreferenceScreen>
