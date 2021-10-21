@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,17 +53,17 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
     }
 
     override fun onAttach(context: Context) {
+        super.onAttach(context)
         interactionListener = if (context is IFragmentInteractionListener) {
             context
         } else {
             throw RuntimeException("$context must implement FragmentInteractionListener")
         }
-        super.onAttach(context)
     }
 
     override fun onDetach() {
-        super.onDetach()
         interactionListener = null
+        super.onDetach()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -143,10 +144,16 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
      * If no items are found for a given day, populate database from website and load from there
      */
     private fun reloadMenu(fullReload: Boolean) {
+        // This shouldn't work but it does. I've decided to pretend it's fine.
+        // 10/21: So I wrote the above statement around a year ago at the time of release. I tested
+        // it just now and it seems that without the assignment of x, and without the runCatching,
+        // the app crashes when refreshing and then spam refreshing tabs. So I guess this fixes it
+        // somehow...
         val x = viewLifecycleOwner
         val cacheEnabled: Boolean = sharedPreferences?.getBoolean(getString(R.string.pref_cache_disabled), true) ?: true
         viewModel.getMenuData(menuPayload.diningHallType, menuPayload.itemType, dateUtil.readDate(), fullReload, cacheEnabled)
-                .observe(x, Observer {
+            .observe(x, Observer {
+                kotlin.runCatching {
                     val adapter = recyclerViewMenuItems?.adapter
                     (adapter as MenuAdapter).setMenu(it)
                     configureDiningHalls()
@@ -158,7 +165,11 @@ class MenuFragment : Fragment(), SharedPreferences.OnSharedPreferenceChangeListe
                     else{
                         textView?.visibility = View.GONE
                     }
-                })
+                }.onFailure {
+                    // Failure: java.lang.IllegalStateException: FragmentManager is already executing transactions
+                    Log.d(TAG, "Failure: $it")
+                }
+            })
         configureBrunch()
     }
 
